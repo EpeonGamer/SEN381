@@ -25,7 +25,7 @@
     - [FEC-02: Maintainability](#fec-02-maintainability)
     - [FEC-03: Testability](#fec-03-testability)
     - [FEC-04: Security \& Data Privacy](#fec-04-security--data-privacy)
-    - [FEC-05: Deployment Environment](#fec-05-deployment-environment)
+    - [FEC-05: Handoff](#fec-05-handoff)
   - [6. System Architecture \& Design](#6-system-architecture--design)
   - [7. Implementation \& Verification](#7-implementation--verification)
   - [8. Deployment, Operations \& SRE](#8-deployment-operations--sre)
@@ -94,7 +94,7 @@ Milestone 1 establishes the controlled engineering foundation, baselining functi
 
 ### FEC-02: Maintainability
 
-* **Planning Influence**: Designing to facilitate future code changes and ease of maintenance requires modular, loosely coupled code that directly influences arhcitecture design. It will also guide code structures and documentation design from the start, and so must be planned for early.
+* **Planning Influence**: Designing to facilitate future code changes and ease of maintenance requires modular, loosely coupled code that directly influences arhcitecture design. It will also guide code structures and documentation requirements from the start, and so must be planned for early.
 * **Future Influence**: Code structure, backend stack options, documentation, module design, coupling, API format.
 * **Information Needs**: Stack choice, hand-off requirements, final software lifetime and maintenance scope.
 * **Risk If Ignored**: If the team doesn't explicitly develop with maintainability in mind then systems will be tightly coupled and individual services cannot be updated. Instead time and costs increase as the ecosystem must be overhauled to suit small changes, which is unacceptable.
@@ -108,17 +108,17 @@ Milestone 1 establishes the controlled engineering foundation, baselining functi
 
 ### FEC-04: Security & Data Privacy
 
-* **Planning Influence**: 
-* **Future Influence**: .
-* **Information Needs**: 
-* **Risk If Ignored**: 
+* **Planning Influence**: Security will directly impact the system approach to ensure role-based access is enforced at every step of the program, while data privacy similarly affects data collectiona and retention considerations, thereby impacting both the frontand and backend planning.
+* **Future Influence**: User account management, verification, recovery strategies, encryption, backup management, role management.
+* **Information Needs**: Data retention regulations, privacy regulations, required user information, varaition fo roles required, chosen stack encryption support.
+* **Risk If Ignored**: Data loss or leak that can lead to system interruptions, failure, and legl action. Account failures leading to unauthorized actions or unrecoverable roles.
 
-### FEC-05: Deployment Environment
+### FEC-05: Handoff
 
-* **Planning Influence**: 
-* **Future Influence**: .
-* **Information Needs**: 
-* **Risk If Ignored**: 
+* **Planning Influence**: The final interface should be operable by non-technical municipal staff. Onboarding, user roles, system administration, and help documentation must be planned early so the system doesn't rely on developers for day-to-day use.
+* **Future Influence**: Admin UI design, user role management, system setting controls, error messages, and admin/user documentation.
+* **Information Needs**: Target admin skill level, required system settings (like ticket categories and department routing), and training documentation scope.
+* **Risk If Ignored**: Non-technical staff won't be able to run the system, change settings, or onboard new agents without developer intervention. This leads to mismanaged requests, system misuse, and high maintenance overhead.
 
 ---
 
