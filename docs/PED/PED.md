@@ -85,6 +85,189 @@ Intended business value:
 ---
 
 ## 2. Requirements Baseline (Functional & Non-Functional)
+Functional Requirements
++-------------+---------+-----------------+----------+----------+----------------+
+| Requirement | Source  | Description     | Priority | Status   | Acceptance     |
+| ID          |         |                 |          |          | criteria       |
++=============+=========+=================+==========+==========+================+
+| FR-001      | Project | The system      | MUST     | Proposed | A requester    |
+|             | Master  | shall allow     |          |          | can only see   |
+|             | brief   | authorised      |          |          | their requests |
+|             |         | requester to    |          |          | and not others |
+|             |         | perform         |          |          |                |
+|             |         | authorised      |          |          | Staff can only |
+|             |         | functions,      |          |          | access         |
+|             |         | according to    |          |          | features can   |
+|             |         | their role      |          |          | function they  |
+|             |         |                 |          |          | are permitted  |
+|             |         |                 |          |          |                |
+|             |         |                 |          |          | Management     |
+|             |         |                 |          |          | features are   |
+|             |         |                 |          |          | unavailable to |
+|             |         |                 |          |          | requesters and |
+|             |         |                 |          |          | staff          |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-002      | Project | The system must | MUST     | Proposed | Submission     |
+|             | Master  | allow           |          |          | form captures  |
+|             | brief   | authenticated   |          |          | necessary      |
+|             |         | requester to    |          |          | service        |
+|             |         | submit requests |          |          | request        |
+|             |         |                 |          |          | details        |
+|             |         |                 |          |          |                |
+|             |         |                 |          |          | When correct   |
+|             |         |                 |          |          | input is       |
+|             |         |                 |          |          | entered and    |
+|             |         |                 |          |          | submit is      |
+|             |         |                 |          |          | clicked, the   |
+|             |         |                 |          |          | system stores  |
+|             |         |                 |          |          | the service    |
+|             |         |                 |          |          | request linked |
+|             |         |                 |          |          | to the         |
+|             |         |                 |          |          | requester      |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-003      | Project | The system      | MUST     | Proposed | The selected   |
+|             | Master  | shall allow a   |          |          | category is    |
+|             | brief   | requester to    |          |          | stored in      |
+|             |         | categorise a    |          |          | correlation to |
+|             |         | request         |          |          | the submitted  |
+|             |         |                 |          |          | service        |
+|             |         |                 |          |          | request        |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-004      | Project | The system      | MUST     | Proposed | The request    |
+|             | Master  | shall allow a   |          |          | status         |
+|             | brief   | requester to    |          |          | displays       |
+|             |         | view status of  |          |          | current status |
+|             |         | their submitted |          |          |                |
+|             |         | requests        |          |          |                |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-005      | Project | The system      | MUST     | Proposed | The list shows |
+|             | Master  | shall allow     |          |          | service        |
+|             | brief   | requesters to   |          |          | requests       |
+|             |         | view a history/ |          |          | submitted by   |
+|             |         | list of their   |          |          | the requester  |
+|             |         | previously      |          |          | and the        |
+|             |         | submitted       |          |          | relevant       |
+|             |         | requests        |          |          | information    |
+|             |         |                 |          |          |                |
+|             |         |                 |          |          | When no        |
+|             |         |                 |          |          | requests       |
+|             |         |                 |          |          | exist, an      |
+|             |         |                 |          |          | empty screen/  |
+|             |         |                 |          |          | history list   |
+|             |         |                 |          |          | is returned    |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-006      | Project | The system      | MUST     | Proposed | Staff can      |
+|             | Master  | shall allow     |          |          | search using   |
+|             | brief   | authorised      |          |          | matching data  |
+|             |         | staff to        |          |          | such as unique |
+|             |         | search, filter  |          |          | identifier for |
+|             |         | and sort        |          |          | service        |
+|             |         | service         |          |          | request        |
+|             |         | requests        |          |          |                |
+|             |         |                 |          |          | Staff can      |
+|             |         |                 |          |          | filter by      |
+|             |         |                 |          |          | categories     |
+|             |         |                 |          |          |                |
+|             |         |                 |          |          | Staff can sort |
+|             |         |                 |          |          | by categories  |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-007      | Project | The system      | MUST     | Proposed | Each           |
+|             | Master  | shall provide   |          |          | application    |
+|             | brief   | meaningful feed |          |          | feedback       |
+|             |         | back regarding  |          |          | displays the   |
+|             |         | the state of a  |          |          | relevant       |
+|             |         | request         |          |          | service        |
+|             |         |                 |          |          | request along  |
+|             |         |                 |          |          | with its       |
+|             |         |                 |          |          | status and     |
+|             |         |                 |          |          | reasoning for  |
+|             |         |                 |          |          | the status     |
+|             |         |                 |          |          | given          |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-008      | Project | The system      | MUST     | Proposed | The system     |
+|             | Master  | shall allow     |          |          | provides full  |
+|             | brief   | authorised      |          |          | service        |
+|             |         | staff to view   |          |          | request        |
+|             |         | full request    |          |          | details        |
+|             |         | details         |          |          |                |
+|             |         |                 |          |          | A staff cannot |
+|             |         |                 |          |          | view a request |
+|             |         |                 |          |          | if they are    |
+|             |         |                 |          |          | not authorised |
+|             |         |                 |          |          | for the        |
+|             |         |                 |          |          | request        |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-009      | Project | The system      | MUST     | Proposed | Responsibility |
+|             | Master  | shall allow an  |          |          | is given by    |
+|             | brief   | authorised      |          |          | selecting      |
+|             |         | staff to assign |          |          | another staff  |
+|             |         | or accept       |          |          | role           |
+|             |         | responsibility  |          |          |                |
+|             |         | for a request   |          |          | No other role  |
+|             |         |                 |          |          | but staff can  |
+|             |         |                 |          |          | assign/accept  |
+|             |         |                 |          |          | responsibility |
+|             |         |                 |          |          | for a request  |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-009      | Project | The system      | MUST     | Proposed | The system     |
+|             | Master  | shall allow     |          |          | will only      |
+|             | brief   | authorised      |          |          | accept the     |
+|             |         | staff to update |          |          | following:     |
+|             |         | a request       |          |          | Assigned, In   |
+|             |         | through defined |          |          | Progress,      |
+|             |         | status          |          |          | Resolved,      |
+|             |         | transactions    |          |          | Closed         |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-010      | Project | The system      | MUST     | Proposed | Comments will  |
+|             | Master  | shall record    |          |          | be saved as an |
+|             | brief   | material        |          |          | entry with the |
+|             |         | actions and     |          |          | author and     |
+|             |         | comments        |          |          | description of |
+|             |         | associated with |          |          | the comment    |
+|             |         | a request       |          |          |                |
+|             |         |                 |          |          | Empty comments |
+|             |         |                 |          |          | are rejected   |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-0011     | Project | The system      | MUST     | Proposed | After a        |
+|             | Master  | shall allow     |          |          | service has    |
+|             | brief   | authorised      |          |          | been resolved, |
+|             |         | staff to        |          |          | the requester  |
+|             |         | resolve/ close  |          |          | will be able   |
+|             |         | requests        |          |          | to see the new |
+|             |         |                 |          |          | status         |
+|             |         |                 |          |          |                |
+|             |         |                 |          |          | Only a request |
+|             |         |                 |          |          | in an approved |
+|             |         |                 |          |          | state can be   |
+|             |         |                 |          |          | closed         |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-012      | Project | The system      | MUST     | Proposed | The overview   |
+|             | Master  | shall allow     |          |          | does not       |
+|             | brief   | authorised      |          |          | expose request |
+|             |         | managers to     |          |          | information    |
+|             |         | view service    |          |          | outside the    |
+|             |         | activity        |          |          | manager\'s     |
+|             |         | information     |          |          | authorised     |
+|             |         |                 |          |          | scope          |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-013      | Project | The system      | MUST     | Proposed | System         |
+|             | Master  | shall allow     |          |          | provides       |
+|             | brief   | management to   |          |          | managers with  |
+|             |         | identify open,  |          |          | counts of      |
+|             |         | overdue,        |          |          | open, overdue, |
+|             |         | resolved, and   |          |          | resolved,      |
+|             |         | closed requests |          |          | closed         |
+|             |         |                 |          |          | requests       |
++-------------+---------+-----------------+----------+----------+----------------+
+| FR-0014     | Project | The system      | MUST     | Proposed | System         |
+|             | Master  | shall allow     |          |          | provides       |
+|             | brief   | management to   |          |          | filter options |
+|             |         | view request    |          |          | for managers   |
+|             |         | information     |          |          | to select from |
+|             |         | according to    |          |          |                |
+|             |         | filters such as |          |          |                |
+|             |         | category/status |          |          |                |
++-------------+---------+-----------------+----------+----------+----------------+
 
 
 ---
