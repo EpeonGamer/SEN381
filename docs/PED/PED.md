@@ -22,6 +22,10 @@
   - [4. Stakeholder Identification \& Governance](#4-stakeholder-identification--governance)
   - [5. Forward Engineering Considerations (FEC)](#5-forward-engineering-considerations-fec)
     - [FEC-01: Traceability](#fec-01-traceability)
+    - [FEC-02: Maintainability](#fec-02-maintainability)
+    - [FEC-03: Testability](#fec-03-testability)
+    - [FEC-04: Security \& Data Privacy](#fec-04-security--data-privacy)
+    - [FEC-05: Deployment Environment](#fec-05-deployment-environment)
   - [6. System Architecture \& Design](#6-system-architecture--design)
   - [7. Implementation \& Verification](#7-implementation--verification)
   - [8. Deployment, Operations \& SRE](#8-deployment-operations--sre)
@@ -87,6 +91,34 @@ Milestone 1 establishes the controlled engineering foundation, baselining functi
 * **Future Influence**: Data structure, storage policy, and audit log design.
 * **Information Needs**: Log retention timeline, compliant audit attributes to be collected.
 * **Risk If Ignored**: Poor management capabilities as requests cannot be linked to the agents that changed them, causing errors to compound as they cannot be monitored to be detect. Legal trouble when services cannot be linked to requests via audit.
+
+### FEC-02: Maintainability
+
+* **Planning Influence**: Designing to facilitate future code changes and ease of maintenance requires modular, loosely coupled code that directly influences arhcitecture design. It will also guide code structures and documentation design from the start, and so must be planned for early.
+* **Future Influence**: Code structure, backend stack options, documentation, module design, coupling, API format.
+* **Information Needs**: Stack choice, hand-off requirements, final software lifetime and maintenance scope.
+* **Risk If Ignored**: If the team doesn't explicitly develop with maintainability in mind then systems will be tightly coupled and individual services cannot be updated. Instead time and costs increase as the ecosystem must be overhauled to suit small changes, which is unacceptable.
+
+### FEC-03: Testability
+
+* **Planning Influence**: A testable system requires isolated components with independent functionality that can be separately verified so a nested failure doesn't go unnoticed and cause cascading failures. This will directly impact coding strategy and validation processes, and should be accounted for before moving to the design phase.
+* **Future Influence**: Component scope and communcation, verification process, test suites.
+* **Information Needs**: Component granularity, services complexity, code coverage goals, and the selected testing tools/frameworks.
+* **Risk If Ignored**: Even a well designed system cannot be analyzed and corrected if it cannot be properly tested. Without proper testability architecture in place, errors will accumulate and undermine the funcatinility and reliability of the system, including security.
+
+### FEC-04: Security & Data Privacy
+
+* **Planning Influence**: 
+* **Future Influence**: .
+* **Information Needs**: 
+* **Risk If Ignored**: 
+
+### FEC-05: Deployment Environment
+
+* **Planning Influence**: 
+* **Future Influence**: .
+* **Information Needs**: 
+* **Risk If Ignored**: 
 
 ---
 
