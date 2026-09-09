@@ -86,6 +86,11 @@ Intended business value:
 
 ## 2. Requirements Baseline (Functional & Non-Functional)
 
+
+---
+
+## 3. Project Scope, Boundaries & Constraints
+
 Scope baseline
 The scope of CivicConnect is to provide a digital platform that the business will use to submit, manage and report on service requests in a more reliable manner. It prioritises the reliable management and traceability of service requests over other features. The scope is needed to ensure that stakeholder needs remain achievable within project constraints and providing enough detail to guide team members through the project lifecycle. 
 
@@ -160,11 +165,6 @@ Scope acceptance rules:
 -	A COULD requirement is optional and must not replace a MUST requirement. 
 
 
----
-
-## 3. Project Scope, Boundaries & Constraints
-
-*Baselined in Milestone 1.*
 
 ---
 
