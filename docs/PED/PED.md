@@ -56,7 +56,25 @@ Milestone 1 establishes the controlled engineering foundation, baselining functi
 
 ## 1. Business & System Objectives
 
-*Baselined in Milestone 1.*
+Problem statement: 
+An organization manages its service requests through a combination of emails, telephone calls, WhatsApp messages, spreadsheets and paper-based controls. Controlling and managing service requests in this manner has proven to create a vast number of problems for the organization. The whole service management lifecycle is disconnected and uncontrolled.
+The approach used by the business can be categorized as a more manual process when dealing with business operations, this introduces recurring problems such as requests getting duplicated or mismanaged between channels,  the staff having difficulty prioritising requests, identifying ownership and coordinating work, there is weak accountability for changes to request status and actions taken, reporting being manual, inconsistent and difficult to audit and there is no single controlled record of the lifecycle of a service request. 
+All these problems affecting staff also create problems for the people using the system, management having limited reliable information about outstanding, overdue and resolved work causes the requesters to have limited visibility of the flow of requests: whether or not a request was received, assigned, delayed, resolved or closed.  And lastly, sensitive request information may be handled inconsistently across informal communication channels. 
+The central problem that stands and is present is the process of service requests being unreliable and not controlled throughout the lifecycle. 
+Business need: 
+The business needs a digital platform that will allow service requests to be submitted, managed, monitored and reported in a much more reliable manner. The digital platform CivicConnect, is intended to streamline the service request process for the business and improve operational efficiency, this is the intended value that the system will provide for the business. It will act as a centralized control system for service requests. 
+Regarding the need for the system within the business, CivicConnect will strengthen and increase the reliability of service request operations, staff and management/oversight capabilities. Service requesters will have better visibility regarding the current state of submitted requests and be able to view a history of submitted requests, they will receive feedback regarding the state of their service request and be able to categorise a request by use of the controlled category mechanism feature. Staff will be able to sort and search for requests and view full request details, be able to assign or accept a responsibility for a request, update request status and resolve those requests when authorised. 
+Management will be able to view service activity information, be given reliable information about requests to be able to identify whether it is open, overdue, resolved or closed, and review request information and use the available information to support accountability and service lifecycle analysis. 
+
+Intended business value: 
+-	Reduced risk of requests being duplicated, overlooked or lost 
+-	Improved visibility of request status for service requesters 
+-	Clear communicated responsibility and ownership for staff members 
+-	Greater accountability 
+-	More reliable information for management regarding state of work 
+-	Improved protection of sensitive request information 
+-	Streamlined service request lifecycle process 
+
 
 ---
 
