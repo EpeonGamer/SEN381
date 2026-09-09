@@ -6,7 +6,7 @@
 
 ### AI-M1-01: Setup of Documentation & Governance Templates
 
-* **Date:** 2026-08-09
+* **Date:** 2026-09-08
 * **Student:** Kasper
 * **Tool Used:** Gemini 1.5 Flash
 * **Engineering Task:** Setup of documentation and baseline templates.
@@ -24,3 +24,11 @@
 * Verification Applied: Cross-checked and manually reviewed and compared against the project scope and stakeholder needs
 * Decision: Accepted with modifications
 * Issues found & corrected: The output contained unecessary columns which the decision was taken to not include those columns within the PED.  
+* **Date:** 2026-09-09
+* **Student:** Kasper
+* **Tool Used:** Gemini 1.5 Flash
+* **Engineering Task:** FEC formatting and grammar pass
+* **AI Contribution:** Checked if FEC language use was fit-for-purpose and suggested edits.
+* **Verification Applied:** Checked against established language use and ease of reading standards.
+* **Decision:** Rejected most edits. Kept genuine clarity improvements.
+* **Issues Found & Corrected:** The generated output was often difficult to parse or softened points made.
