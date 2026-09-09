@@ -85,261 +85,38 @@ Intended business value:
 ---
 
 ## 2. Requirements Baseline (Functional & Non-Functional)
-3. Functional Requirements
-+-------------+---------+-----------------+----------+----------+----------------+
-| Requirement | Source  | Description     | Priority | Status   | Acceptance     |
-| ID          |         |                 |          |          | criteria       |
-+=============+=========+=================+==========+==========+================+
-| FR-001      | Project | The system      | MUST     | Proposed | A requester    |
-|             | Master  | shall allow     |          |          | can only see   |
-|             | brief   | authorised      |          |          | their requests |
-|             |         | requester to    |          |          | and not others |
-|             |         | perform         |          |          |                |
-|             |         | authorised      |          |          | Staff can only |
-|             |         | functions,      |          |          | access         |
-|             |         | according to    |          |          | features can   |
-|             |         | their role      |          |          | function they  |
-|             |         |                 |          |          | are permitted  |
-|             |         |                 |          |          |                |
-|             |         |                 |          |          | Management     |
-|             |         |                 |          |          | features are   |
-|             |         |                 |          |          | unavailable to |
-|             |         |                 |          |          | requesters and |
-|             |         |                 |          |          | staff          |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-002      | Project | The system must | MUST     | Proposed | Submission     |
-|             | Master  | allow           |          |          | form captures  |
-|             | brief   | authenticated   |          |          | necessary      |
-|             |         | requester to    |          |          | service        |
-|             |         | submit requests |          |          | request        |
-|             |         |                 |          |          | details        |
-|             |         |                 |          |          |                |
-|             |         |                 |          |          | When correct   |
-|             |         |                 |          |          | input is       |
-|             |         |                 |          |          | entered and    |
-|             |         |                 |          |          | submit is      |
-|             |         |                 |          |          | clicked, the   |
-|             |         |                 |          |          | system stores  |
-|             |         |                 |          |          | the service    |
-|             |         |                 |          |          | request linked |
-|             |         |                 |          |          | to the         |
-|             |         |                 |          |          | requester      |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-003      | Project | The system      | MUST     | Proposed | The selected   |
-|             | Master  | shall allow a   |          |          | category is    |
-|             | brief   | requester to    |          |          | stored in      |
-|             |         | categorise a    |          |          | correlation to |
-|             |         | request         |          |          | the submitted  |
-|             |         |                 |          |          | service        |
-|             |         |                 |          |          | request        |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-004      | Project | The system      | MUST     | Proposed | The request    |
-|             | Master  | shall allow a   |          |          | status         |
-|             | brief   | requester to    |          |          | displays       |
-|             |         | view status of  |          |          | current status |
-|             |         | their submitted |          |          |                |
-|             |         | requests        |          |          |                |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-005      | Project | The system      | MUST     | Proposed | The list shows |
-|             | Master  | shall allow     |          |          | service        |
-|             | brief   | requesters to   |          |          | requests       |
-|             |         | view a history/ |          |          | submitted by   |
-|             |         | list of their   |          |          | the requester  |
-|             |         | previously      |          |          | and the        |
-|             |         | submitted       |          |          | relevant       |
-|             |         | requests        |          |          | information    |
-|             |         |                 |          |          |                |
-|             |         |                 |          |          | When no        |
-|             |         |                 |          |          | requests       |
-|             |         |                 |          |          | exist, an      |
-|             |         |                 |          |          | empty screen/  |
-|             |         |                 |          |          | history list   |
-|             |         |                 |          |          | is returned    |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-006      | Project | The system      | MUST     | Proposed | Staff can      |
-|             | Master  | shall allow     |          |          | search using   |
-|             | brief   | authorised      |          |          | matching data  |
-|             |         | staff to        |          |          | such as unique |
-|             |         | search, filter  |          |          | identifier for |
-|             |         | and sort        |          |          | service        |
-|             |         | service         |          |          | request        |
-|             |         | requests        |          |          |                |
-|             |         |                 |          |          | Staff can      |
-|             |         |                 |          |          | filter by      |
-|             |         |                 |          |          | categories     |
-|             |         |                 |          |          |                |
-|             |         |                 |          |          | Staff can sort |
-|             |         |                 |          |          | by categories  |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-007      | Project | The system      | MUST     | Proposed | Each           |
-|             | Master  | shall provide   |          |          | application    |
-|             | brief   | meaningful feed |          |          | feedback       |
-|             |         | back regarding  |          |          | displays the   |
-|             |         | the state of a  |          |          | relevant       |
-|             |         | request         |          |          | service        |
-|             |         |                 |          |          | request along  |
-|             |         |                 |          |          | with its       |
-|             |         |                 |          |          | status and     |
-|             |         |                 |          |          | reasoning for  |
-|             |         |                 |          |          | the status     |
-|             |         |                 |          |          | given          |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-008      | Project | The system      | MUST     | Proposed | The system     |
-|             | Master  | shall allow     |          |          | provides full  |
-|             | brief   | authorised      |          |          | service        |
-|             |         | staff to view   |          |          | request        |
-|             |         | full request    |          |          | details        |
-|             |         | details         |          |          |                |
-|             |         |                 |          |          | A staff cannot |
-|             |         |                 |          |          | view a request |
-|             |         |                 |          |          | if they are    |
-|             |         |                 |          |          | not authorised |
-|             |         |                 |          |          | for the        |
-|             |         |                 |          |          | request        |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-009      | Project | The system      | MUST     | Proposed | Responsibility |
-|             | Master  | shall allow an  |          |          | is given by    |
-|             | brief   | authorised      |          |          | selecting      |
-|             |         | staff to assign |          |          | another staff  |
-|             |         | or accept       |          |          | role           |
-|             |         | responsibility  |          |          |                |
-|             |         | for a request   |          |          | No other role  |
-|             |         |                 |          |          | but staff can  |
-|             |         |                 |          |          | assign/accept  |
-|             |         |                 |          |          | responsibility |
-|             |         |                 |          |          | for a request  |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-009      | Project | The system      | MUST     | Proposed | The system     |
-|             | Master  | shall allow     |          |          | will only      |
-|             | brief   | authorised      |          |          | accept the     |
-|             |         | staff to update |          |          | following:     |
-|             |         | a request       |          |          | Assigned, In   |
-|             |         | through defined |          |          | Progress,      |
-|             |         | status          |          |          | Resolved,      |
-|             |         | transactions    |          |          | Closed         |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-010      | Project | The system      | MUST     | Proposed | Comments will  |
-|             | Master  | shall record    |          |          | be saved as an |
-|             | brief   | material        |          |          | entry with the |
-|             |         | actions and     |          |          | author and     |
-|             |         | comments        |          |          | description of |
-|             |         | associated with |          |          | the comment    |
-|             |         | a request       |          |          |                |
-|             |         |                 |          |          | Empty comments |
-|             |         |                 |          |          | are rejected   |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-0011     | Project | The system      | MUST     | Proposed | After a        |
-|             | Master  | shall allow     |          |          | service has    |
-|             | brief   | authorised      |          |          | been resolved, |
-|             |         | staff to        |          |          | the requester  |
-|             |         | resolve/ close  |          |          | will be able   |
-|             |         | requests        |          |          | to see the new |
-|             |         |                 |          |          | status         |
-|             |         |                 |          |          |                |
-|             |         |                 |          |          | Only a request |
-|             |         |                 |          |          | in an approved |
-|             |         |                 |          |          | state can be   |
-|             |         |                 |          |          | closed         |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-012      | Project | The system      | MUST     | Proposed | The overview   |
-|             | Master  | shall allow     |          |          | does not       |
-|             | brief   | authorised      |          |          | expose request |
-|             |         | managers to     |          |          | information    |
-|             |         | view service    |          |          | outside the    |
-|             |         | activity        |          |          | manager\'s     |
-|             |         | information     |          |          | authorised     |
-|             |         |                 |          |          | scope          |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-013      | Project | The system      | MUST     | Proposed | System         |
-|             | Master  | shall allow     |          |          | provides       |
-|             | brief   | management to   |          |          | managers with  |
-|             |         | identify open,  |          |          | counts of      |
-|             |         | overdue,        |          |          | open, overdue, |
-|             |         | resolved, and   |          |          | resolved,      |
-|             |         | closed requests |          |          | closed         |
-|             |         |                 |          |          | requests       |
-+-------------+---------+-----------------+----------+----------+----------------+
-| FR-0014     | Project | The system      | MUST     | Proposed | System         |
-|             | Master  | shall allow     |          |          | provides       |
-|             | brief   | management to   |          |          | filter options |
-|             |         | view request    |          |          | for managers   |
-|             |         | information     |          |          | to select from |
-|             |         | according to    |          |          |                |
-|             |         | filters such as |          |          |                |
-|             |         | category/status |          |          |                |
-+-------------+---------+-----------------+----------+----------+----------------+
+## Functional requirements
 
-4.  Non-functional requirements
+| Requirement ID | Source | Description | Priority | Status | Acceptance criteria |
+| --- | --- | --- | --- | --- | --- |
+| FR-001 | Project Master brief | The system shall allow authorised requester to perform authorised functions, according to their role | MUST | Proposed | A requester can only see their requests and not others.<br><br>Staff can only access features can function they are permitted.<br><br>Management features are unavailable to requesters and staff. |
+| FR-002 | Project Master brief | The system must allow authenticated requester to submit requests | MUST | Proposed | Submission form captures necessary service request details.<br><br>When correct input is entered and submit is clicked, the system stores the service request linked to the requester. |
+| FR-003 | Project Master brief | The system shall allow a requester to categorise a request | MUST | Proposed | The selected category is stored in correlation to the submitted service request. |
+| FR-004 | Project Master brief | The system shall allow a requester to view status of their submitted requests | MUST | Proposed | The request status displays current status. |
+| FR-005 | Project Master brief | The system shall allow requesters to view a history/list of their previously submitted requests | MUST | Proposed | The list shows service requests submitted by the requester and the relevant information.<br><br>When no requests exist, an empty screen/history list is returned. |
+| FR-006 | Project Master brief | The system shall allow authorised staff to search, filter and sort service requests | MUST | Proposed | Staff can search using matching data such as unique identifier for service request.<br><br>Staff can filter by categories.<br><br>Staff can sort by categories. |
+| FR-007 | Project Master brief | The system shall provide meaningful feedback regarding the state of a request | MUST | Proposed | Each application feedback displays the relevant service request along with its status and reasoning for the status given. |
+| FR-008 | Project Master brief | The system shall allow authorised staff to view full request details | MUST | Proposed | The system provides full service request details.<br><br>A staff cannot view a request if they are not authorised for the request. |
+| FR-009 | Project Master brief | The system shall allow an authorised staff to assign or accept responsibility for a request | MUST | Proposed | Responsibility is given by selecting another staff role.<br><br>No other role but staff can assign/accept responsibility for a request. |
+| FR-009 | Project Master brief | The system shall allow authorised staff to update a request through defined status transactions | MUST | Proposed | The system will only accept the following: Assigned, In Progress, Resolved, Closed. |
+| FR-010 | Project Master brief | The system shall record material actions and comments associated with a request | MUST | Proposed | Comments will be saved as an entry with the author and description of the comment.<br><br>Empty comments are rejected. |
+| FR-0011 | Project Master brief | The system shall allow authorised staff to resolve/close requests | MUST | Proposed | After a service has been resolved, the requester will be able to see the new status.<br><br>Only a request in an approved state can be closed. |
+| FR-012 | Project Master brief | The system shall allow authorised managers to view service activity information | MUST | Proposed | The overview does not expose request information outside the manager's authorised scope. |
+| FR-013 | Project Master brief | The system shall allow management to identify open, overdue, resolved, and closed requests | MUST | Proposed | System provides managers with counts of open, overdue, resolved, closed requests. |
+| FR-014 | Project Master brief | The system shall allow management to view request information according to filters such as category/status | MUST | Proposed | System provides filter options for managers to select from. |
 
-  ---------------------------------------------------------------------------------------------------------------
-  Requirement   Source                  Category        Description       Priority   Status     Status
-  ID                                                                                            
-  ------------- ----------------------- --------------- ----------------- ---------- ---------- -----------------
-  NFR-001       Project Master Brief/   Performance     The system shall  MUST       Proposed   Measured via load
-                projectmanagement.com                   responds as                             test
-                                                        intended during                         
-                                                        normal                                  
-                                                        operational                             
-                                                        conditions                              
+## Non-functional requirements
 
-  NFR-002       Project Master Brief/   Security        The system should MUST       Proposed   Inspect
-                projectmanagement.com                   use HTTPS and use                       authentication
-                                                        hashing to store                        configuration,
-                                                        passwords                               pass when HTTPS
-                                                                                                is enforced and
-                                                                                                no plaintext
-                                                                                                passwords stored
-
-  NFR-003       Project Master Brief/   Availability    The system must   SHOULD     Proposed   Availability
-                projectmanagement.com                   be able to                              measurement
-                                                        achieve 90%                             
-                                                        availability                            
-
-  NFR-004       Project Master Brief/   Reliability     A service request SHOULD     Proposed   When there is an
-                projectmanagement.com                   lifecycle will                          application
-                                                        either save all                         failure during
-                                                        request details                         request creation,
-                                                        or not when an                          assignment or
-                                                        error occurs                            status update,
-                                                                                                the database
-                                                                                                contains either
-                                                                                                the changed and
-                                                                                                completed result
-                                                                                                or the unchanged
-                                                                                                result
-
-  NFR-005       Project Master Brief/   Access control  The system shall  MUST       Proposed   security tests
-                projectmanagement.com                   prevent                                 which confirm
-                                                        unauthorised and                        that protected
-                                                        unauthenticated                         endpoints reject
-                                                        users from                              unauthenticated
-                                                        accessing service                       users
-                                                        request                                 
-                                                        information                             
-
-  NFR-006       Project Master Brief/   Compatibility   The system shall  SHOULD     Proposed   Cross-browser
-                projectmanagement.com                   operate on the                          testing
-                                                        latest stable                           
-                                                        versions                                
-                                                        available to the                        
-                                                        team                                    
-
-  NFR-007       Project Master Brief/   Data privacy    The system shall  MUST       Proposed   Using two
-                projectmanagement.com                   prevent                                 requester
-                                                        requesters from                         accounts and try
-                                                        viewing other                           to access other
-                                                        requests that                           account's
-                                                        don't belong to                         requests
-                                                        them unless                             
-                                                        authorised                              
-
-  NFR-008       Project Master Brief/   Usability       Users should be   SHOULD     Proposed   Tested via
-                projectmanagement.com                   allowed to                              completion rate
-                                                        complete service                        and time taken to
-                                                        request functions                       complete the
-                                                        without requiring                       service request
-                                                        any assistance                          process
-  ---------------------------------------------------------------------------------------------------------------
+| Requirement ID | Source | Category | Description | Priority | Status | Acceptance criteria |
+| --- | --- | --- | --- | --- | --- | --- |
+| NFR-001 | Project Master Brief / projectmanagement.com | Performance | The system shall responds as intended during normal operational conditions | MUST | Proposed | Measured via load test. |
+| NFR-002 | Project Master Brief / projectmanagement.com | Security | The system should use HTTPS and use hashing to store passwords | MUST | Proposed | Inspect authentication configuration,<br><br>pass when HTTPS is enforced and no plaintext passwords stored. |
+| NFR-003 | Project Master Brief / projectmanagement.com | Availability | The system must be able to achieve 90% availability | SHOULD | Proposed | Availability measurement. |
+| NFR-004 | Project Master Brief / projectmanagement.com | Reliability | A service request lifecycle will either save all request details or not when an error occurs | SHOULD | Proposed | When there is an application failure during request creation, assignment or status update, the database contains either the changed and completed result or the unchanged result. |
+| NFR-005 | Project Master Brief / projectmanagement.com | Access control | The system shall prevent unauthorised and unauthenticated users from accessing service request information | MUST | Proposed | Security tests which confirm that protected endpoints reject unauthenticated users. |
+| NFR-006 | Project Master Brief / projectmanagement.com | Compatibility | The system shall operate on the latest stable versions available to the team | SHOULD | Proposed | Cross-browser testing. |
+| NFR-007 | Project Master Brief / projectmanagement.com | Data privacy | The system shall prevent requesters from viewing other requests that don't belong to them unless authorised | MUST | Proposed | Using two requester accounts and try to access other account's requests. |
+| NFR-008 | Project Master Brief / projectmanagement.com | Usability | Users should be allowed to complete service request functions without requiring any assistance | SHOULD | Proposed | Tested via completion rate and time taken to complete the service request process. |
 
 
 ---
@@ -454,104 +231,39 @@ Scope acceptance rules:
 ---
 
 ## References & Evidence Traceability
-Traceability matrix:
+## Traceability matrix
 
-Functional requirement traceability matrix:
+### Functional requirement traceability matrix
 
-  -----------------------------------------------------------------------
-  Requirement   Source        Priority   Status     Verification method
-  ------------- ------------- ---------- ---------- ---------------------
-  FR-001        Stakeholder   MUST       Proposed   Access-control tests
-                                                    for role-to-function
-                                                    and role-to-data rule
+| Requirement | Source | Priority | Status | Verification method |
+| --- | --- | --- | --- | --- |
+| FR-001 | Stakeholder | MUST | Proposed | Access-control tests for role-to-function and role-to-data rule. |
+| FR-002 | Stakeholder | MUST | Proposed | Tests for valid and invalid submission. |
+| FR-003 | Stakeholder | MUST | Proposed | Test for stored-data check regarding category selection. |
+| FR-004 | Stakeholder | MUST | Proposed | Authorisation tests for requester status view. |
+| FR-005 | Stakeholder | MUST | Proposed | Tests for populated and empty history states. |
+| FR-006 | Stakeholder | MUST | Proposed | Tests for search, filters, sorting. |
+| FR-007 | Stakeholder | MUST | Proposed | Tests for status feedback and mandatory rejection reason. |
+| FR-008 | Stakeholder | MUST | Proposed | Access-control tests for full detail view. |
+| FR-009 | Stakeholder | MUST | Proposed | Authorisation tests for assignment and acceptance. |
+| FR-010 | Stakeholder | MUST | Proposed | Tests covering recordings and recorded actions. |
+| FR-011 | Stakeholder | MUST | Proposed | Tests to resolve and close service requests. |
+| FR-012 | Stakeholder | MUST | Proposed | Management-view and authorisation tests. |
+| FR-013 | Stakeholder | MUST | Proposed | Tests conducted for identification of requests via request state. |
+| FR-014 | Stakeholder | MUST | Proposed | Filter-combination, reset and no-results tests. |
 
-  FR-002        Stakeholder   MUST       Proposed   tests for valid and
-                                                    invalid submission
+### Non-functional requirement traceability matrix
 
-  FR-003        Stakeholder   MUST       Proposed   test for stored-data
-                                                    check regarding
-                                                    category selection
-
-  FR-004        Stakeholder   MUST       Proposed   authorisation tests
-                                                    for requester status
-                                                    view
-
-  FR-005        Stakeholder   MUST       Proposed   tests for populated
-                                                    and empty history
-                                                    states
-
-  FR-006        Stakeholder   MUST       Proposed   tests for search,
-                                                    filters, sorting
-
-  FR-007        Stakeholder   MUST       Proposed   tests for status
-                                                    feedback and
-                                                    mandatory rejection
-                                                    reason
-
-  FR-008        Stakeholder   MUST       Proposed   access-control tests
-                                                    for full detail view
-
-  FR-009        Stakeholder   MUST       Proposed   authorisation tests
-                                                    for assignment and
-                                                    acceptance
-
-  FR-010        Stakeholder   MUST       Proposed   tests covering
-                                                    recordings and
-                                                    recorded actions
-
-  FR-011        Stakeholder   MUST       Proposed   tests to resolve and
-                                                    close service
-                                                    requests
-
-  FR-012        Stakeholder   MUST       Proposed   Management-view and
-                                                    authorisation tests
-
-  FR-013        Stakeholder   MUST       Proposed   Tests conducted for
-                                                    identification of
-                                                    requests via request
-                                                    state
-
-  FR-014        Stakeholder   MUST       Proposed   Filter-combination,
-                                                    reset and no-results
-                                                    tests
-  -----------------------------------------------------------------------
-
-Non-functional requirement traceability matrix:
-
-  -----------------------------------------------------------------
-  Requirement   Source        Priority   Status     Verification
-                                                    method
-  ------------- ------------- ---------- ---------- ---------------
-  NFR-001       Stakeholder   MUST       Proposed   Load Testing
-
-  NFR-002       Stakeholder   MUST       Proposed   Password
-                                                    storage and
-                                                    HTTPS
-                                                    inspection
-
-  NFR-003       Stakeholder   SHOULD     Proposed   Monitoring
-                                                    testing and
-                                                    maintenance
-                                                    logs
-
-  NFR-004       Stakeholder   SHOULD     Proposed   Fault testing
-
-  NFR-005       Stakeholder   MUST       Proposed   Authorisation
-                                                    security tests
-
-  NFR-006       Stakeholder   SHOULD     Proposed   Access control
-                                                    tests
-
-  NFR-007       Stakeholder   MUST       Proposed   URL and API
-                                                    testing across
-                                                    two accounts
-
-  NFR-008       Stakeholder   SHOULD     Proposed   Completion rate
-                                                    and time taken
-                                                    to complete
-                                                    service request
-                                                    tests
-  -----------------------------------------------------------------
+| Requirement | Source | Priority | Status | Verification method |
+| --- | --- | --- | --- | --- |
+| NFR-001 | Stakeholder | MUST | Proposed | Load Testing. |
+| NFR-002 | Stakeholder | MUST | Proposed | Password storage and HTTPS inspection. |
+| NFR-003 | Stakeholder | SHOULD | Proposed | Monitoring testing and maintenance logs. |
+| NFR-004 | Stakeholder | SHOULD | Proposed | Fault testing. |
+| NFR-005 | Stakeholder | MUST | Proposed | Authorisation security tests. |
+| NFR-006 | Stakeholder | SHOULD | Proposed | Access control tests. |
+| NFR-007 | Stakeholder | MUST | Proposed | URL and API testing across two accounts. |
+| NFR-008 | Stakeholder | SHOULD | Proposed | Completion rate and time taken to complete service request tests. |
 # Bibliography
 
 Indeed Editorial Team. Business value. Available at:
