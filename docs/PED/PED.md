@@ -85,7 +85,7 @@ Intended business value:
 ---
 
 ## 2. Requirements Baseline (Functional & Non-Functional)
-Functional Requirements
+3. Functional Requirements
 +-------------+---------+-----------------+----------+----------+----------------+
 | Requirement | Source  | Description     | Priority | Status   | Acceptance     |
 | ID          |         |                 |          |          | criteria       |
@@ -269,6 +269,77 @@ Functional Requirements
 |             |         | category/status |          |          |                |
 +-------------+---------+-----------------+----------+----------+----------------+
 
+4.  Non-functional requirements
+
+  ---------------------------------------------------------------------------------------------------------------
+  Requirement   Source                  Category        Description       Priority   Status     Status
+  ID                                                                                            
+  ------------- ----------------------- --------------- ----------------- ---------- ---------- -----------------
+  NFR-001       Project Master Brief/   Performance     The system shall  MUST       Proposed   Measured via load
+                projectmanagement.com                   responds as                             test
+                                                        intended during                         
+                                                        normal                                  
+                                                        operational                             
+                                                        conditions                              
+
+  NFR-002       Project Master Brief/   Security        The system should MUST       Proposed   Inspect
+                projectmanagement.com                   use HTTPS and use                       authentication
+                                                        hashing to store                        configuration,
+                                                        passwords                               pass when HTTPS
+                                                                                                is enforced and
+                                                                                                no plaintext
+                                                                                                passwords stored
+
+  NFR-003       Project Master Brief/   Availability    The system must   SHOULD     Proposed   Availability
+                projectmanagement.com                   be able to                              measurement
+                                                        achieve 90%                             
+                                                        availability                            
+
+  NFR-004       Project Master Brief/   Reliability     A service request SHOULD     Proposed   When there is an
+                projectmanagement.com                   lifecycle will                          application
+                                                        either save all                         failure during
+                                                        request details                         request creation,
+                                                        or not when an                          assignment or
+                                                        error occurs                            status update,
+                                                                                                the database
+                                                                                                contains either
+                                                                                                the changed and
+                                                                                                completed result
+                                                                                                or the unchanged
+                                                                                                result
+
+  NFR-005       Project Master Brief/   Access control  The system shall  MUST       Proposed   security tests
+                projectmanagement.com                   prevent                                 which confirm
+                                                        unauthorised and                        that protected
+                                                        unauthenticated                         endpoints reject
+                                                        users from                              unauthenticated
+                                                        accessing service                       users
+                                                        request                                 
+                                                        information                             
+
+  NFR-006       Project Master Brief/   Compatibility   The system shall  SHOULD     Proposed   Cross-browser
+                projectmanagement.com                   operate on the                          testing
+                                                        latest stable                           
+                                                        versions                                
+                                                        available to the                        
+                                                        team                                    
+
+  NFR-007       Project Master Brief/   Data privacy    The system shall  MUST       Proposed   Using two
+                projectmanagement.com                   prevent                                 requester
+                                                        requesters from                         accounts and try
+                                                        viewing other                           to access other
+                                                        requests that                           account's
+                                                        don't belong to                         requests
+                                                        them unless                             
+                                                        authorised                              
+
+  NFR-008       Project Master Brief/   Usability       Users should be   SHOULD     Proposed   Tested via
+                projectmanagement.com                   allowed to                              completion rate
+                                                        complete service                        and time taken to
+                                                        request functions                       complete the
+                                                        without requiring                       service request
+                                                        any assistance                          process
+  ---------------------------------------------------------------------------------------------------------------
 
 ---
 
