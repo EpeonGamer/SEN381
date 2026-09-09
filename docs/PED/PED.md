@@ -341,6 +341,7 @@ Intended business value:
                                                         any assistance                          process
   ---------------------------------------------------------------------------------------------------------------
 
+
 ---
 
 ## 3. Project Scope, Boundaries & Constraints
@@ -453,6 +454,125 @@ Scope acceptance rules:
 ---
 
 ## References & Evidence Traceability
+Traceability matrix:
+
+Functional requirement traceability matrix:
+
+  -----------------------------------------------------------------------
+  Requirement   Source        Priority   Status     Verification method
+  ------------- ------------- ---------- ---------- ---------------------
+  FR-001        Stakeholder   MUST       Proposed   Access-control tests
+                                                    for role-to-function
+                                                    and role-to-data rule
+
+  FR-002        Stakeholder   MUST       Proposed   tests for valid and
+                                                    invalid submission
+
+  FR-003        Stakeholder   MUST       Proposed   test for stored-data
+                                                    check regarding
+                                                    category selection
+
+  FR-004        Stakeholder   MUST       Proposed   authorisation tests
+                                                    for requester status
+                                                    view
+
+  FR-005        Stakeholder   MUST       Proposed   tests for populated
+                                                    and empty history
+                                                    states
+
+  FR-006        Stakeholder   MUST       Proposed   tests for search,
+                                                    filters, sorting
+
+  FR-007        Stakeholder   MUST       Proposed   tests for status
+                                                    feedback and
+                                                    mandatory rejection
+                                                    reason
+
+  FR-008        Stakeholder   MUST       Proposed   access-control tests
+                                                    for full detail view
+
+  FR-009        Stakeholder   MUST       Proposed   authorisation tests
+                                                    for assignment and
+                                                    acceptance
+
+  FR-010        Stakeholder   MUST       Proposed   tests covering
+                                                    recordings and
+                                                    recorded actions
+
+  FR-011        Stakeholder   MUST       Proposed   tests to resolve and
+                                                    close service
+                                                    requests
+
+  FR-012        Stakeholder   MUST       Proposed   Management-view and
+                                                    authorisation tests
+
+  FR-013        Stakeholder   MUST       Proposed   Tests conducted for
+                                                    identification of
+                                                    requests via request
+                                                    state
+
+  FR-014        Stakeholder   MUST       Proposed   Filter-combination,
+                                                    reset and no-results
+                                                    tests
+  -----------------------------------------------------------------------
+
+Non-functional requirement traceability matrix:
+
+  -----------------------------------------------------------------
+  Requirement   Source        Priority   Status     Verification
+                                                    method
+  ------------- ------------- ---------- ---------- ---------------
+  NFR-001       Stakeholder   MUST       Proposed   Load Testing
+
+  NFR-002       Stakeholder   MUST       Proposed   Password
+                                                    storage and
+                                                    HTTPS
+                                                    inspection
+
+  NFR-003       Stakeholder   SHOULD     Proposed   Monitoring
+                                                    testing and
+                                                    maintenance
+                                                    logs
+
+  NFR-004       Stakeholder   SHOULD     Proposed   Fault testing
+
+  NFR-005       Stakeholder   MUST       Proposed   Authorisation
+                                                    security tests
+
+  NFR-006       Stakeholder   SHOULD     Proposed   Access control
+                                                    tests
+
+  NFR-007       Stakeholder   MUST       Proposed   URL and API
+                                                    testing across
+                                                    two accounts
+
+  NFR-008       Stakeholder   SHOULD     Proposed   Completion rate
+                                                    and time taken
+                                                    to complete
+                                                    service request
+                                                    tests
+  -----------------------------------------------------------------
+# Bibliography
+
+Indeed Editorial Team. Business value. Available at:
+https://www.indeed.com/career-advice/career-development/business-value
+(Accessed 9 September 2026).
+
+ProjectManager. How to write a project scope statement. Available at:
+https://www.projectmanager.com/blog/project-scope-statement (Accessed 9
+September 2026).
+
+Project Management Academy. Project scope statement. Available at:
+https://projectmanagementacademy.net/resources/blog/project-scope-statement-pmp/
+(Accessed 9 September 2026).
+
+ProjectManager. Acceptance criteria in project management. Available at:
+https://www.projectmanager.com/blog/acceptance-criteria-project-management
+(Accessed 9 September 2026).
+
+Project-Management.com. Requirements traceability matrix. Available at:
+https://project-management.com/requirements-traceability-matrix-rtm/
+(Accessed 9 September 2026).
 
 * **SEN381 Master Project Brief v1.0**
 * **SEN381 Milestone 1 Brief v1.0**
