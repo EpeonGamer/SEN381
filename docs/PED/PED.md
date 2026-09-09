@@ -21,6 +21,7 @@
   - [3. Project Scope, Boundaries \& Constraints](#3-project-scope-boundaries--constraints)
   - [4. Stakeholder Identification \& Governance](#4-stakeholder-identification--governance)
   - [5. Forward Engineering Considerations (FEC)](#5-forward-engineering-considerations-fec)
+    - [FEC-01: Traceability](#fec-01-traceability)
   - [6. System Architecture \& Design](#6-system-architecture--design)
   - [7. Implementation \& Verification](#7-implementation--verification)
   - [8. Deployment, Operations \& SRE](#8-deployment-operations--sre)
@@ -80,7 +81,12 @@ Milestone 1 establishes the controlled engineering foundation, baselining functi
 
 ## 5. Forward Engineering Considerations (FEC)
 
-*Baselined in Milestone 1 (Observability, Scalability, Automated Testing, Security, Deployment).*
+### FEC-01: Traceability
+
+* **Planning Influence**: Facilitating tracking and auditing service requests (required for accountability) will require specific data solutions and transaction management, directly impacting technology and architecture choice.
+* **Future Influence**: Data structure, storage policy, and audit log design.
+* **Information Needs**: Log retention timeline, compliant audit attributes to be collected.
+* **Risk If Ignored**: Poor management capabilities as requests cannot be linked to the agents that changed them, causing errors to compound as they cannot be monitored to be detect. Legal trouble when services cannot be linked to requests via audit.
 
 ---
 
