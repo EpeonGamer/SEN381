@@ -70,3 +70,14 @@
 * **Verification Applied:** Reviewed the diagram against the persistence table and checked relationships  
 * **Decision:** Accepted with modifications.  
 * **Issues found & corrected:** Simplified the diagram for readability, added missing concepts identified during review, and clarified that the management reporting will be regarded as a view instead of its own hard written entity.
+### AI-M2-04: ADR Structure and Submission Review
+
+* **Date:** 2026-09-30
+* **Student:** Kasper
+* **Tool used:** GPT-5.6 Luna
+* **Engineering Task:** Structure and review M2 ADRs before submission.
+* **AI Contribution:** Suggested ADR structure and reviewed the submission for consistency and unsupported assumptions.
+* **Verification Applied:** Team requirements and existing project evidence were checked; substantial changes were made to align with the rest of the team's work.
+* **Decision:** Accepted with modifications.
+* **Issues found & corrected:** Unfounded assumptions in the initial output were removed or revised during team review.
+

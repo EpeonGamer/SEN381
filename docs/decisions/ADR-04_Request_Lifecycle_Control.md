@@ -1,6 +1,6 @@
 # ADR-04: Request Lifecycle Control (Design Problem 1)
 
-**Status:** PROPOSED: awaiting review by two team members other than the author
+**Status:** Accepted
 
 **Date:** 2026-09-30  **Author:** Kasper, Member 3
 
@@ -19,7 +19,7 @@ Request status is CivicConnect's central business rule (FR-009, FR-011, FR-015, 
 - The model is deliberately minimal (CR-M2-01). Reinstating In Progress or adding reopening is possible later through change control, so adding a state or transition must stay cheap.
 - Maintainability and testability are committed drivers (FEC-02, FEC-03).
 - Three-person team, fixed deadline, cost and learning-curve constraints (PED 1.6.5).
-- Stack selected by the team: C# with ASP.NET Core and PostgreSQL on a centralised database server [link the stack/persistence ADR ID].
+- Stack selected by the team: C# with ASP.NET Core and PostgreSQL on a centralised database server (ADR-06; persistence baseline in PED §1.12).
 
 ## 2. Research Evidence Used (A2), Referenced Not Copied
 
@@ -105,13 +105,12 @@ Diagram: `docs/architecture/request-status-state-machine` (CR-M2-01, section 3 m
 | Drivers | FEC-02 maintainability, FEC-03 testability, FEC-01 traceability |
 | Change record | CR-M2-01 |
 | Related ADRs | ADR-02 (persistence: synchronous commit); ADR-05 (role-based authorization) |
-| Risk Register | [Add risk ID: lifecycle bypass / over-simplification] |
-| RTM columns to fill | Design/interface decision: ADR-04. Implementation evidence: `src/CivicConnect.Core/Lifecycle/` [branch/PR: TBD until merged]. Verification evidence: `tests/CivicConnect.Core.Tests/LifecycleTests.cs` [run result: TBD until run in the team's xUnit project]. |
-| AI Usage Register | [Entry ID: TBD] |
+| Risk Register | RISK-M2-05: lifecycle bypass / over-simplification |
+| RTM columns to fill | Design/interface decision: ADR-04. Implementation evidence: `src/CivicConnect.Core/Lifecycle/` [branch: state-management]. Verification evidence: `tests/CivicConnect.Core.Tests/LifecycleTests.cs` [29 Core tests passed in Visual Studio]. |
+| AI Usage Register | AI-M2-04 |
 
 ADR-05 refines the authorization responsibility originally represented by the placeholder `ActorRole` check in this ADR. The lifecycle decision remains responsible for controlling state transitions; authorization is now owned by the dedicated authorization policy.
 
-Implementation and test evidence are recorded as **TBD** until they exist. Do not fill them in speculatively.
 
 ## 9a. Verification Plan
 
@@ -137,13 +136,14 @@ Artefacts that would need to change: the state diagram, `TransitionRules` and `T
 
 ## 11. Later Consequence
 
-TBD. Update when implementation and testing produce evidence.
+Authorization responsibility was separated into ADR-05. The lifecycle decision remains responsible for controlling state transitions; authorization is now owned by the dedicated authorization policy.
 
 ## 12. Review Record
 
 | Reviewer | Date | Decision | Comments |
 |---|---|---|---|
-| | | | |
+| Aidan | 2026-09-30 | Accepted | Reviewed ADR-04 and approved the lifecycle control decision. |
+| Lethebe | 2026-09-30 | Accepted | Reviewed ADR-04 and approved the lifecycle control decision. |
 | | | | |
 
 ## 13. References

@@ -20,7 +20,7 @@
   - [1.5. Requirements Baseline (Functional \& Non-Functional)](#15-requirements-baseline-functional--non-functional)
     - [1.5.1. Functional Requirements](#151-functional-requirements)
     - [1.5.2. Non-Functional Requirements](#152-non-functional-requirements)
-    - [1.5.3. Requirements Traceability Matrix (Initial)](#153-requirements-traceability-matrix-initial)
+    - [1.5.3. Requirements Traceability Matrix (M1 Baseline / M2 Update)](#153-requirements-traceability-matrix-m1-baseline--m2-update)
   - [1.6. Project Scope, Boundaries \& Constraints](#16-project-scope-boundaries--constraints)
     - [1.6.1. In Scope](#161-in-scope)
     - [1.6.2. Out of Scope](#162-out-of-scope)
@@ -36,9 +36,15 @@
     - [1.9.3. FEC-03: Testability](#193-fec-03-testability)
     - [1.9.4. FEC-04: Security \& Data Privacy](#194-fec-04-security--data-privacy)
     - [1.9.5. FEC-05: Handoff](#195-fec-05-handoff)
+    - [1.9.6. FEC-06: Role and Visibility Configuration](#196-fec-06-role-and-visibility-configuration)
   - [1.10. Risk Identification and Management](#110-risk-identification-and-management)
   - [1.11. Baseline Sign-Off \& Gate Evidence](#111-baseline-sign-off--gate-evidence)
   - [1.12. System Architecture \& Design](#112-system-architecture--design)
+    - [ASRs, Quality Drivers and Architecture decisions](#asrs-quality-drivers-and-architecture-decisions)
+    - [Architecture / lifecycle design evidence](#architecture--lifecycle-design-evidence)
+    - [Technology Decisions, integration and deployment compatibility](#technology-decisions-integration-and-deployment-compatibility)
+    - [Data and persistence baseline](#data-and-persistence-baseline)
+    - [Significant decisions/risks](#significant-decisionsrisks)
   - [1.13. Implementation \& Verification](#113-implementation--verification)
   - [1.14. Deployment, Operations \& SRE](#114-deployment-operations--sre)
   - [1.15. References \& Evidence Traceability](#115-references--evidence-traceability)
@@ -56,7 +62,7 @@
 | 0.4.0 | 2026/09/09 | Added Team Working Agreement (draft) and Baseline Sign-Off & Gate Evidence (draft, per Master Brief Appendix D) as controlled PED sections; renumbered downstream sections | Kasper | Aidan, Lethebe |
 | 0.5.0 | 2026/09/09 | Reconciled repository PED.md (which had reverted to uncorrected content) against this corrected/consolidated version; added dedicated Project Constraints subsection (§1.6.5) with cost/quality/security trade-off; finalised Team Working Agreement roles and communication plan | Kasper | Aidan, Lethebe |
 | 1.0.0 | 2026/09/09 | Formal Milestone 1 Baseline Submission | Team | Aidan, Lethebe |
-| 2.0.0 | 2026/09/30 | M2 controlled update: ADR-05 authorization/visibility decision, affected RTM evidence, initial Core implementation and 29 passing tests | Team | Pending M2 review |
+| 2.0.0 | 2026/09/30 | M2 controlled update: ADR-04 lifecycle decision, ADR-05 authorization/visibility decision, ADR-06 technology-stack decision, data/persistence baseline, affected RTM evidence, initial Core implementation and 29 passing tests | Team | Aidan, Lethebe |
 
 ---
 
@@ -131,45 +137,42 @@ Management will be able to view service activity information, be given reliable 
 | NFR-007 | Project Master Brief/projectmanagement.com | Data privacy | The system shall prevent requesters from viewing other requests that don't belong to them unless authorised | MUST | Proposed | Using two requester accounts and try to access other account's requests |
 | NFR-008 | Project Master Brief/projectmanagement.com | Usability | Users should be allowed to complete service request functions without requiring any assistance | SHOULD | Proposed | Tested via completion rate and time taken to complete the service request process |
 
-### 1.5.3. Requirements Traceability Matrix (Initial)
+### 1.5.3. Requirements Traceability Matrix (M1 Baseline / M2 Update)
 
 **Functional requirement traceability matrix:**
 
-Updated Functional RTM
-
 The quality drivers used are the following: D1 integrity and audit; D2 access and privacy; D3 lifecycle visibility and reporting; D4 availability; D5 normal-load response.
 
-| Requirement ID | Stakeholder and Priority | Acceptance criteria                                                                                                                                                    | ASR/ Quality driver | Architecture / module / component               | Data / persistence impact                    | Design/ interface decision                                  | Technology decision                        | Implementation evidence | Verification evidence                                            | Status                                    | ADR / Change / risk reference      |
-|----------------|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|-------------------------------------------------|----------------------------------------------|-------------------------------------------------------------|--------------------------------------------|-------------------------|------------------------------------------------------------------|-------------------------------------------|------------------------------------|
-| FR-001 | System (role-based access, all stakeholders) | The system shall allow authorised requester to perform authorised functions, according to their role | MUST | In Development | Requester scope is owner-only; Staff scope is the union of permitted Staff-group request types; Management has broader authorised scope | D2 | Authorization policy / request visibility | UserAccount / Role / StaffGroup (persistence pending) | Visibility policy + lifecycle authorization seam | ASP.NET Core authorization at application boundary (planned); Core authorization policy implemented | `src/CivicConnect.Core/Authorization/` and updated `Lifecycle/TransitionService.cs` | 29 Core tests passing, including authorization tests | ADR-05; RISK-001; RISK-M2-04 |
-| FR-002         | Requester, MUST          | submit is clicked, the system stores the service request linked to the requester                                                                                       | D1, D2              | Request service                                 | Service Request                              | Transactional create; validate before commit                | PostgreSQL proposed and runtime pending    | Planned                 | Tests for valid and invalid submission                           | M1 approved; M2 proposed; not implemented | DEC-M2-01,DEC-M2-03                |
-| FR-003         | Requester, MUST          | The selected category is stored in correlation to the submitted service request                                                                                        | D1, D3              | Category and request service                    | RequestCategory                              | Controlled category selection/validation                    | PostgreSQL proposed                        | Planned                 | Test for stored-data check regarding category selection          | M1 approved; M2 proposed; not implemented | DEC-M2-01                          |
-| FR-004 | Requester | The system shall allow a requester to view status of their submitted requests | MUST | In Development | A requester may view status only for requests within their owner scope | D2, D3 | Request visibility policy | ServiceRequest ownership | Owner-scoped visibility | PostgreSQL proposed; application authorization implemented in Core | `src/CivicConnect.Core/Authorization/` | Authorization tests passing; repository/API integration planned | ADR-05; RISK-M2-04 |
-| FR-005 | Requester | The system shall allow requesters to view a history/list of their previously submitted requests | MUST | In Development | Request history is limited to the requester's own scope | D2, D3 | Request visibility scope | ServiceRequest ownership | Owner-scoped list query (repository integration pending) | PostgreSQL proposed | `VisibilityScope` implemented; repository/API query integration deferred | Initial policy tests passing; query integration planned | ADR-05; FEC-03 |
-| FR-006 | Staff | The system shall allow authorised staff to search, filter and sort service requests | MUST | In Development | Staff can only search/filter/sort requests within the union of request types permitted by their Staff groups | D3, D5 | Staff visibility scope + query filtering | RequestCategory / StaffGroup mapping (persistence pending) | Scoped filtering and sorting | PostgreSQL proposed | `VisibilityScope` and StaffGroup policy implemented in Core; query integration planned | Authorization tests passing; repository/API integration planned | ADR-05; RISK-M2-04 |
-| FR-007         | Requester, MUST          | Feedback contains request, status and reasoning                                                                                                                        | D1, D3              | Feedback information                            | Request query and feedback view              | No external notification, In-app information viewing        | PostgreSQL proposed and UI pending         | Planned                 | Tests for status feedback and mandatory rejection reason         | M1 approved; M2 proposed; not implemented | Clarification required; RISK-M2-05 |
-| FR-008 | Staff | The system shall allow authorised staff to view full request details | MUST | In Development | A Staff member cannot view a request outside the request types permitted by their groups | D2 | Request-level visibility policy | ServiceRequest + RequestCategory + StaffGroup (persistence pending) | Same visibility policy used for individual access and list scope | ASP.NET Core authorization planned at application boundary | `src/CivicConnect.Core/Authorization/` | Authorization tests passing; API integration planned | ADR-05; RISK-001; RISK-M2-04 |
-| FR-009         | Staff, MUST              | Staff-only assignment/acceptance                                                                                                                                       | D1, D2              | Assignment/ acceptance commands                 | AssignmentResponsibility                     | Staff scope check and closing of previous active assignment | PostgreSQL proposed                        | Planned                 | Authorisation tests for assignment and acceptance                | M1 approved; M2 proposed; not implemented | DEC-M2-03; RISK-M2-03              |
-| FR-010         | Staff, MUST              | Comments will be saved as an entry with the author and description of the comment                                                                                      | D1                  | Request event service                           | RequestActionComment                         | Append attributed, non-empty comment                        | PostgreSQL proposed                        | Planned                 | Tests covering recordings and recorded actions                   | M1 approved; M2 proposed; not implemented | DEC-M2-01,DEC-M2-03; RISK-M2-03    |
-| FR-011         | Staff, MUST              | Requester sees resolved status; only approved state closes                                                                                                             | D1, D3              | Request lifecycle query                         | Current status and Status History            | Proposed RESOLVED→CLOSED, pending approved-state            | PostgreSQL proposed                        | Planned                 | Tests to resolve and close service requests                      | M1 approved; M2 proposed; not implemented | DEC-M2-03; RISK-M2-05              |
-| FR-012 | Management | The system shall allow authorised managers to view service activity information | MUST | In Development | Manager view is limited to the manager's authorised reporting scope; current Core policy provides the broader Manager scope, with reporting query integration deferred | D2, D3 | Manager visibility scope | ManagementReportingView / ServiceRequest | Manager-scoped reporting query | PostgreSQL proposed | `RoleVisibilityPolicy` provides Manager scope in Core; reporting/API integration planned | Authorization tests passing; reporting integration planned | ADR-05; RISK-M2-04 |
-| FR-013 | Management | The system shall allow management to identify open, overdue, resolved, and closed requests | MUST | In Development | Counts must be calculated only from the manager's authorised reporting scope | D3 | Manager-scoped reporting | ServiceRequest | Manager-scoped count query | PostgreSQL proposed | Authorization scope implemented; reporting query pending | Planned | ADR-05 |
-| FR-014 | Management | The system shall allow management to view request information according to filters such as category/status | MUST | In Development | Manager filters operate within the manager's authorised scope | D2, D3 | Manager visibility + filtered reporting | ServiceRequest / RequestCategory | Manager-scoped filtered query | PostgreSQL proposed | Authorization scope implemented; reporting query pending | Planned | ADR-05 |
-| FR-015         | Staff, MUST              | Only accepts Assigned, In Progress, Resolved, Closed                                                                                                                   | D1                  | RequestCommandService                           | ServiceRequest – current Status              | Explicit transition policy                                  | PostgreSQL proposed                        | Planned                 | Tests for valid/invalid status-transition enforcement            | M1 approved; M2 proposed; not implemented | DEC-M2-03; RISK-M2-03 / RISK-M2-05 |
+| Requirement ID | Stakeholder / Source | Requirement | Priority | Acceptance criteria | ASR / Quality driver | Architecture / module / component | Data / persistence impact | Design / interface decision | Technology decision | Implementation evidence | Verification evidence | Status | ADR / Change / risk reference |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| FR-001 | System (role-based access, all stakeholders) | The system shall allow authorised requester to perform authorised functions, according to their role | MUST | Requester scope is owner-only; Staff scope is the union of permitted Staff-group request types; Management has broader authorised scope | D2 | Authorization policy / request visibility | UserAccount / Role / StaffGroup (persistence pending) | Visibility policy + lifecycle authorization seam | ASP.NET Core authorization at application boundary (planned); Core authorization policy implemented | `src/CivicConnect.Core/Authorization/` and updated `Lifecycle/TransitionService.cs` | 29 Core tests passing, including authorization tests | In Development | ADR-05; RISK-001; RISK-M2-04 |
+| FR-002 | Requester | The system must allow authenticated requester to submit requests | MUST | submit is clicked, the system stores the service request linked to the requester | D1, D2 | Request service | Service Request | Transactional create; validate before commit | PostgreSQL proposed and runtime pending | Planned | Tests for valid and invalid submission | M1 approved; M2 proposed; not implemented | DEC-M2-01,DEC-M2-03 |
+| FR-003 | Requester | The system shall allow a requester to categorise a request | MUST | The selected category is stored in correlation to the submitted service request | D1, D3 | Category and request service | RequestCategory | Controlled category selection/validation | PostgreSQL proposed | Planned | Test for stored-data check regarding category selection | M1 approved; M2 proposed; not implemented | DEC-M2-01 |
+| FR-004 | Requester | The system shall allow a requester to view status of their submitted requests | MUST | A requester may view status only for requests within their owner scope | D2, D3 | Request visibility policy | ServiceRequest ownership | Owner-scoped visibility | PostgreSQL proposed; application authorization implemented in Core | `src/CivicConnect.Core/Authorization/` | Authorization tests passing; repository/API integration planned | In Development | ADR-05; RISK-M2-04 |
+| FR-005 | Requester | The system shall allow requesters to view a history/list of their previously submitted requests | MUST | Request history is limited to the requester's own scope | D2, D3 | Request visibility scope | ServiceRequest ownership | Owner-scoped list query (repository integration pending) | PostgreSQL proposed | `VisibilityScope` implemented; repository/API query integration deferred | Initial policy tests passing; query integration planned | In Development | ADR-05; FEC-03 |
+| FR-006 | Staff | The system shall allow authorised staff to search, filter and sort service requests | MUST | Staff can only search/filter/sort requests within the union of request types permitted by their Staff groups | D3, D5 | Staff visibility scope + query filtering | RequestCategory / StaffGroup mapping (persistence pending) | Scoped filtering and sorting | PostgreSQL proposed | `VisibilityScope` and StaffGroup policy implemented in Core; query integration planned | Authorization tests passing; repository/API integration planned | In Development | ADR-05; RISK-M2-04 |
+| FR-007 | Requester | The system shall provide meaningful feedback regarding the state of a request | MUST | Feedback contains request, status and reasoning | D1, D3 | Feedback information | Request query and feedback view | No external notification, In-app information viewing | PostgreSQL proposed and UI pending | Planned | Tests for status feedback and mandatory rejection reason | M1 approved; M2 proposed; not implemented | Clarification required; RISK-M2-05 |
+| FR-008 | Staff | The system shall allow authorised staff to view full request details | MUST | A Staff member cannot view a request outside the request types permitted by their groups | D2 | Request-level visibility policy | ServiceRequest + RequestCategory + StaffGroup (persistence pending) | Same visibility policy used for individual access and list scope | ASP.NET Core authorization planned at application boundary | `src/CivicConnect.Core/Authorization/` | Authorization tests passing; API integration planned | In Development | ADR-05; RISK-001; RISK-M2-04 |
+| FR-009 | Staff | The system shall allow an authorised staff to assign or accept responsibility for a request | MUST | Staff-only assignment/acceptance | D1, D2 | Assignment/ acceptance commands | AssignmentResponsibility | Staff scope check and closing of previous active assignment | PostgreSQL proposed | Planned | Authorisation tests for assignment and acceptance | M1 approved; M2 proposed; not implemented | DEC-M2-03; RISK-M2-03 |
+| FR-010 | Staff | The system shall record material actions and comments associated with a request | MUST | Comments will be saved as an entry with the author and description of the comment | D1 | Request event service | RequestActionComment | Append attributed, non-empty comment | PostgreSQL proposed | Planned | Tests covering recordings and recorded actions | M1 approved; M2 proposed; not implemented | DEC-M2-01,DEC-M2-03; RISK-M2-03 |
+| FR-011 | Staff | The system shall allow authorised staff to resolve/close requests | MUST | Requester sees resolved status; only approved state closes | D1, D3 | Request lifecycle query | Current status and Status History | Proposed RESOLVED→CLOSED, pending approved-state | PostgreSQL proposed | Planned | Tests to resolve and close service requests | M1 approved; M2 proposed; not implemented | DEC-M2-03; RISK-M2-05 |
+| FR-012 | Management | The system shall allow authorised managers to view service activity information | MUST | Manager view is limited to the manager's authorised reporting scope; current Core policy provides the broader Manager scope, with reporting query integration deferred | D2, D3 | Manager visibility scope | ManagementReportingView / ServiceRequest | Manager-scoped reporting query | PostgreSQL proposed | `RoleVisibilityPolicy` provides Manager scope in Core; reporting/API integration planned | Authorization tests passing; reporting integration planned | In Development | ADR-05; RISK-M2-04 |
+| FR-013 | Management | The system shall allow management to identify open, overdue, resolved, and closed requests | MUST | Counts must be calculated only from the manager's authorised reporting scope | D3 | Manager-scoped reporting | ServiceRequest | Manager-scoped count query | PostgreSQL proposed | Authorization scope implemented; reporting query pending | Planned | In Development | ADR-05 |
+| FR-014 | Management | The system shall allow management to view request information according to filters such as category/status | MUST | Manager filters operate within the manager's authorised scope | D2, D3 | Manager visibility + filtered reporting | ServiceRequest / RequestCategory | Manager-scoped filtered query | PostgreSQL proposed | Authorization scope implemented; reporting query pending | Planned | In Development | ADR-05 |
+| FR-015 | Staff | The system shall allow authorised staff to update a request through defined status transitions | MUST | Only accepts Assigned, In Progress, Resolved, Closed | D1 | RequestCommandService | ServiceRequest – current Status | Explicit transition policy | PostgreSQL proposed | Planned | Tests for valid/invalid status-transition enforcement | M1 approved; M2 proposed; not implemented | DEC-M2-03; RISK-M2-03 / RISK-M2-05 |
 
 **Non-functional requirement traceability matrix:**
 
-| Requirement ID | Stakeholder and Priority | Acceptance criteria                                              | ASR/ Quality driver | Architecture / module / component | Data / persistence impact                                                               | Design/ interface decision    | Technology decision                                                    | Implementation evidence | Verification evidence                      | Status                                    | ADR / Change / risk reference              |
-|----------------|--------------------------|------------------------------------------------------------------|---------------------|-----------------------------------|-----------------------------------------------------------------------------------------|-------------------------------|------------------------------------------------------------------------|-------------------------|--------------------------------------------|-------------------------------------------|--------------------------------------------|
-| NFR-001        | M1 PED/ MUST             | Measured via load test                                           | D5                  | Query performance                 | Measure reporting queries as history grows.                                             | Bounded query size            | PostgreSQL                                                             | Planned                 | load test results after threshold approved | M1 approved; M2 proposed; not implemented | DEC-M2-01; RISK-003                        |
-| NFR-002        | M1 PED/ MUST             | HTTPS enforced; no plaintext passwords                           | D2                  | Identity and deployment           | Store has passwords only                                                                | Credential handling           | Secure password storage such as bcrypt. TLS config for HTTPS enforcing | Planned                 | HTTPS config and stored-hash analysis      | M1 approved; M2 proposed; not implemented | RISK-001; stack ADR pending                |
-| NFR-003        | M1 PED/ SHOULD           | Monitoring testing and maintenance logs                          | D4                  | Category and require services     | Single database failure interrupts system workflows. Backups/restores must be available | Document recovery             | PostgreSQL and recovery plans proposed                                 | Planned                 | monitoring and maintenance logs            | M1 approved; M2 proposed; not implemented | RISK-004 / RISK-M2-01; scope clarification |
-| NFR-004        | M1 PED/ SHOULD           | Fault testing                                                    | D1                  | Request command services          | ServiceRequest, Status History, AssignmentResponsibility                                | Transaction and version check | PostgreSQL proposed transactions                                       | Planned                 | Concurrent update testing                  | M1 approved; M2 proposed; not implemented | DEC-M2-03; RISK-M2-03                      |
-| NFR-005 | M1 PED MUST | Authorisation security tests | D2 | Authorization policy / request visibility | Request queries must apply authorised role and ownership/group scope before returning rows | Server-side checks; single policy for list and item access | ASP.NET Core authorization planned at application boundary; Core visibility policy implemented | `src/CivicConnect.Core/Authorization/` | 29 Core tests passing; endpoint/query security tests planned when API exists | In Development | ADR-05; RISK-001; RISK-M2-04 |
-| NFR-006        | M1 PED/ SHOULD           | Access control tests                                             | D2                  | User interface                    | N/A                                                                                     | Compatible UI                 | Browser/front-end choice pending                                       | Planned                 | Integration and latest version tests       | M1 approved; M2 proposed; not implemented | UI/stack ADR pending                       |
-| NFR-007 | M1 PED MUST | URL and API testing across two accounts | D2 | Authorization policy / request visibility | Each request is linked to its owner; Staff access is additionally constrained by group/request-type scope | Row/list scope enforced server-side | PostgreSQL ownership FK proposed; API enforcement pending | `VisibilityScope` and `RoleVisibilityPolicy` implemented in Core | 29 Core tests passing; cross-account URL/API tests planned at application boundary | In Development | ADR-05; RISK-001; RISK-M2-04 |
-| NFR-008        | M1 PED/ SHOULD           | Completion rate and time taken to complete service request tests | D2                  | User interface and workdlow       | Clear status/feedback data supports task                                                | Accessible forms and feedback | Front-end stack pending                                                | Planned                 | defined usability task and timed study     | M1 approved; M2 proposed; not implemented | UI/design ADR pending                      |
-
+| Requirement ID | Stakeholder / Source | Requirement | Priority | Acceptance criteria | ASR / Quality driver | Architecture / module / component | Data / persistence impact | Design / interface decision | Technology decision | Implementation evidence | Verification evidence | Status | ADR / Change / risk reference |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| NFR-001 | Project Master Brief/projectmanagement.com | The system shall respond as intended during normal operational conditions | MUST | Measured via load test | D5 | Query performance | Measure reporting queries as history grows. | Bounded query size | PostgreSQL | Planned | load test results after threshold approved | M1 approved; M2 proposed; not implemented | DEC-M2-01; RISK-003 |
+| NFR-002 | Project Master Brief/projectmanagement.com | The system should use HTTPS and use hashing to store passwords | MUST | HTTPS enforced; no plaintext passwords | D2 | Identity and deployment | Store has passwords only | Credential handling | Secure password storage such as bcrypt. TLS config for HTTPS enforcing | Planned | HTTPS config and stored-hash analysis | M1 approved; M2 proposed; not implemented | RISK-001; stack ADR pending |
+| NFR-003 | Project Master Brief/projectmanagement.com | The system must be able to achieve 99.9% availability | SHOULD | Monitoring testing and maintenance logs | D4 | Category and require services | Single database failure interrupts system workflows. Backups/restores must be available | Document recovery | PostgreSQL and recovery plans proposed | Planned | monitoring and maintenance logs | M1 approved; M2 proposed; not implemented | RISK-004 / RISK-M2-01; scope clarification |
+| NFR-004 | Project Master Brief/projectmanagement.com | A service request lifecycle will either save all request details or not when an error occurs during an assignment or status update, the database contains either the changed and completed result or the unchanged result | SHOULD | Fault testing | D1 | Request command services | ServiceRequest, Status History, AssignmentResponsibility | Transaction and version check | PostgreSQL proposed transactions | Planned | Concurrent update testing | M1 approved; M2 proposed; not implemented | DEC-M2-03; RISK-M2-03 |
+| NFR-005 | Project Master Brief/projectmanagement.com | The system shall prevent unauthorised and unauthenticated users from accessing service request information | MUST | Authorisation security tests | D2 | Authorization policy / request visibility | Request queries must apply authorised role and ownership/group scope before returning rows | Server-side checks; single policy for list and item access | ASP.NET Core authorization planned at application boundary; Core visibility policy implemented | `src/CivicConnect.Core/Authorization/` | 29 Core tests passing; endpoint/query security tests planned when API exists | In Development | ADR-05; RISK-001; RISK-M2-04 |
+| NFR-006 | Project Master Brief/projectmanagement.com | The system shall operate on the latest stable versions available to the team | SHOULD | Access control tests | D2 | User interface | N/A | Compatible UI | Browser/front-end choice pending | Planned | Integration and latest version tests | M1 approved; M2 proposed; not implemented | UI/stack ADR pending |
+| NFR-007 | Project Master Brief/projectmanagement.com | The system shall prevent requesters from viewing other requests that don't belong to them unless authorised | MUST | URL and API testing across two accounts | D2 | Authorization policy / request visibility | Each request is linked to its owner; Staff access is additionally constrained by group/request-type scope | Row/list scope enforced server-side | PostgreSQL ownership FK proposed; API enforcement pending | `VisibilityScope` and `RoleVisibilityPolicy` implemented in Core | 29 Core tests passing; cross-account URL/API tests planned at application boundary | In Development | ADR-05; RISK-001; RISK-M2-04 |
+| NFR-008 | Project Master Brief/projectmanagement.com | Users should be allowed to complete service request functions without requiring any assistance | SHOULD | Completion rate and time taken to complete service request tests | D2 | User interface and workdlow | Clear status/feedback data supports task | Accessible forms and feedback | Front-end stack pending | Planned | defined usability task and timed study | M1 approved; M2 proposed; not implemented | UI/design ADR pending |
 ---
 
 ## 1.6. Project Scope, Boundaries & Constraints
@@ -370,6 +373,13 @@ Focus will be purely emphasized upon the service request lifecycle. Having impor
 * **Information Needs**: Data retention regulations, privacy regulations, required user information, variation of roles required, chosen stack encryption support.
 * **Risk If Ignored**: Data loss or leak that can lead to system interruptions, failure, and legal action. Account failures leading to unauthorized actions or unrecoverable roles.
 
+### 1.9.5. FEC-05: Handoff
+
+* **Planning Influence**: The final interface should be operable by non-technical municipal staff. Onboarding, user roles, system administration, and help documentation must be planned early so the system doesn't rely on developers for day-to-day use.
+* **Future Influence**: Admin UI design, user role management, system setting controls, error messages, and admin/user documentation.
+* **Information Needs**: Target admin skill level, required system settings (like ticket categories and department routing), and training documentation scope.
+* **Risk If Ignored**: Non-technical staff won't be able to run the system, change settings, or onboard new agents without developer intervention. This leads to mismanaged requests, system misuse, and high maintenance overhead.
+
 ### 1.9.6. FEC-06: Role and Visibility Configuration
 
 * **Planning Influence**: Request visibility is a dedicated authorization responsibility rather than being embedded in lifecycle logic. Requester ownership, Staff group/request-type scope and Manager scope must remain enforceable at the server-side application boundary.
@@ -377,8 +387,6 @@ Focus will be purely emphasized upon the service request lifecycle. Having impor
 * **Information Needs**: Final role/group administration model, authentication provider, persistence schema for Staff groups and request types, and exact manager reporting scope.
 * **Risk If Ignored**: Authorization rules may diverge between list queries, individual-request access and lifecycle operations, creating unauthorized disclosure or inconsistent permissions.
 * **Current M2 evidence**: `CivicConnect.Core/Authorization/` implements the initial policy boundary and `VisibilityScope`; lifecycle authorization now consumes that boundary. Repository/API/database integration is deferred.
-
-### 1.9.5. FEC-05: Handoff
 
 * **Planning Influence**: The final interface should be operable by non-technical municipal staff. Onboarding, user roles, system administration, and help documentation must be planned early so the system doesn't rely on developers for day-to-day use.
 * **Future Influence**: Admin UI design, user role management, system setting controls, error messages, and admin/user documentation.
@@ -430,8 +438,15 @@ Based on Master Project Brief Appendix D.
 
 ### M2 Architecture / Design baseline update
 
-**M2 status:** Initial authorization/visibility implementation complete; API, authentication and persistence integration deferred.
+**M2 status:** M2 architecture and design baseline accepted; initial Core implementation complete for the two selected design decisions. API, authentication and persistence integration deferred.
 
+**M2 baseline sign-off:** ACCEPTED
+
+**Reviewers:** Kasper, Aidan, Lethebe
+
+**Date:** 2026-09-30
+
+- **ADR-04:** Request lifecycle control uses a table-driven state machine approach.
 - **ADR-05:** Centralize role/request visibility in a dedicated Authorization module using a Strategy-style visibility policy that returns a `VisibilityScope`.
 - **Requester:** own-request scope.
 - **Staff:** scope is the union of request types permitted by all Staff groups assigned to the user.
@@ -442,9 +457,7 @@ Based on Master Project Brief Appendix D.
 
 ## 1.12. System Architecture & Design
 
-![StateMachineDiagram](../architecture/diagrams/StateMachine.png)
-
-## ASRs, Quality Drivers and Architecture decisions
+### ASRs, Quality Drivers and Architecture decisions
 
 The architectural decisions driving the technogoly used for CivicConnect are driven by the shareholders of the project, as well as the development team's capabilities. The requirements for the project that have been determined to be significant include Security, Accessibility, Performance, Integration of systems, Data integrity and Maintainability. Users of CivicConnect will need access to the technology used, whilst keeping data secure. The performance of the project will also need to be adequate for users to have a seemless experience. Meanwhile, the developers and management will want to ensure data is secure and the correct data is being utilized in CivicConnect. Developers will also want an easily maintainable system to both add features in the future as well as fix any defects that arise in the short-term. The developers will therefore also want a system with functional integrations, with adequate cohesion and coupling of systems for maximum functionality of CivicConnect. With this in mind, the following Technology stack has been determined to be ideal for CivicConnect:
 
@@ -461,11 +474,15 @@ Typescript, Node/Express, with PostgreSQL/Vitest/Jest, React/Server-rendered Pag
 The stack will interact as per the following diagram:\
 ![StackDiagram](../architecture/diagrams/StackDiagram.png)
 
-## Technology Decisions, integration and deployment compatibility
+### Architecture / lifecycle design evidence
 
-For C# programming the technology used will be Microsoft Visual Studio. The decision to do so is due to its familiarity to the developers, the integration capabilities with .Net frameworks, as well as npgSQL. Additionally, should there be a decision to switch to other programing languages at any point it is a simple transition within the software. On the backend, for the server, intially a local server will be used for Postgre SQL, however for testing purposes Google Cloud Servers can also be utilized. The technologies utilized here comform to the intial ASR guidelines, however should there be a decision to move away from the initial stack, software such as Netbeans IDE can be used for Java, while Microsoft VS Code can be utilized for Python and Node/Express. All options are compatible and have adequate integration for Postgre SQL, as well as complementary software available in their respective stacks. 
+![StateMachineDiagram](../architecture/diagrams/StateMachine.png)
 
-## Data and persistence baseline
+### Technology Decisions, integration and deployment compatibility
+
+For C# programming the technology used will be Microsoft Visual Studio. The decision to do so is due to its familiarity to the developers, the integration capabilities with .Net frameworks, as well as npgSQL. Additionally, should there be a decision to switch to other programing languages at any point it is a simple transition within the software. On the backend, for the server, intially a local server will be used for Postgre SQL, however for testing purposes Google Cloud Servers can also be utilized. The technologies utilized here comform to the intial ASR guidelines, however should there be a decision to move away from the initial stack, software such as Netbeans IDE can be used for Java, while Microsoft VS Code can be utilized for Python and Node/Express. All options are compatible and have adequate integration for Postgre SQL, as well as complementary software available in their respective stacks.
+
+### Data and persistence baseline
 
 - Important data entities/aggregates, relationships, ownership and lifecycle implications
 
@@ -493,7 +510,7 @@ For C# programming the technology used will be Microsoft Visual Studio. The deci
 | AssignmentResponsibility               | assignment_id PK, request_id FK → ServiceRequest, staff_user_id FK → User, assigned_by_user_id FK → User, assigned_at, accepted_at *(optional)*, ended_at *(optional)* |
 | RequestActionsComments                 | entry_id PK, request_id FK → ServiceRequest, author_user_id FK → User, entry_type, content, visibility, created_at                                                     |
 | Feedback                               | feedback_id PK, request_id FK → ServiceRequest, recipient_user_id FK → User, event_type, message, created_at, read_at *(optional)*                                     |
-| ManagementReportingView – Dervied View | request_id, category_name, current_status, assigned_staff_id, submitted_at, due_at, calculated is_overdue                                                              |
+| ManagementReportingView – Derived View | request_id, category_name, current_status, assigned_staff_id, submitted_at, due_at, calculated is_overdue                                                              |
 
 - Persistence model(s) recommendation
 
@@ -536,7 +553,7 @@ transaction rules are applied.
 
 A2’s audit logging analysis recommends using synchronous commits for the simple fact that this approach pairs operations and their audit logs within a single transaction block that succeeds or fails together.
 
-- Significant decisions/risks
+### Significant decisions/risks
 
 | DRAFT ID and status | Type     | Decision/Risk                                                                               | Response                                                                                              | Related requirements                                     | Application Evidence |
 |---------------------|----------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|----------------------------------------------------------|----------------------|
@@ -544,21 +561,28 @@ A2’s audit logging analysis recommends using synchronous commits for the simpl
 | DEC-M2-02: Proposed | Decision | Storing current request state along with history information. Retain assignment history     | Current state makes reads more straightforward. Update both status and history atomically.            | FR-004, FR-005, FR-007, FR-009–FR-015                    | Planned              |
 | DEC-M2-03: Proposed | Decision | Save assignment/status changes within one transaction. Failure results in rejections.       | This prevents conflicting updates and silents overwrites by the staff.                                | FR-009, FR-010, FR-011, FR-015; NFR-004                  | Planned              |
 | DEC-M2-04: Proposed | Decision | Start with one primary node for the database and only adding replicas when it is warranted. | This is suitable for a 3-man development team due to its low cost but still being operational.        | FR-005, FR-006, FR-012–FR-014; NFR-001, NFR-003          | Planned              |
-| DEC-M2-05: M2 Proposed | Decision | Centralize role/request visibility in a dedicated Authorization area using a Strategy-style visibility policy that returns a `VisibilityScope`. | ASP.NET Core authorization is reserved for the application boundary; the Core policy keeps CivicConnect-specific visibility rules testable and prevents list/detail rules from drifting. Staff members may belong to multiple groups and receive the union of their permitted request types. | FR-001, FR-004–FR-006, FR-008, FR-012–FR-014; NFR-005, NFR-007; FEC-02, FEC-03, FEC-04 | `src/CivicConnect.Core/Authorization/`; 29 Core tests passing; ADR-05 |
+| DEC-M2-05: M2 Accepted | Decision | Centralize role/request visibility in a dedicated Authorization area using a Strategy-style visibility policy that returns a `VisibilityScope`. | ASP.NET Core authorization is reserved for the application boundary; the Core policy keeps CivicConnect-specific visibility rules testable and prevents list/detail rules from drifting. Staff members may belong to multiple groups and receive the union of their permitted request types. | FR-001, FR-004–FR-006, FR-008, FR-012–FR-014; NFR-005, NFR-007; FEC-02, FEC-03, FEC-04 | `src/CivicConnect.Core/Authorization/`; 29 Core tests passing; ADR-05 |
+| DEC-M2-06: M2 Accepted | Decision | Use C#, ASP.NET, PostgreSQL and npgSQL as the technology stack. | The reasoning behind the decisions is due to the familiarity of the software available, the languages and the integrations to the development team. Additionally security and maintainability are also adequately accounted for from these technologies. | FR-001–FR-015; NFR-001–NFR-008 | ADR-06; StackDiagram; PED 1.12 |
 | RISK-M2-01: Open    | Risk     | Database primary node becoming unavailable. Which stops read and write queries.             | Define the backup and restore methods to prepare for future possible errors.                          | NFR-003, NFR-004                                         | Planned              |
 | RISK-M2-02: Open    | Risk     | Growing data such as history and reporting queries which results in slow performance        | Measure system and query performance as load and data grows and add necessary tweaks such as indexes. | FR-005, FR-006, FR-012–FR-014; NFR-001                   | Planned              |
 | RISK-M2-03: Open    | Risk     | Incomplete transactions or updates creating inconsistent request records or data            | Enforce and ensure authorised transactions and conflict handling.                                     | FR-009–FR-011, FR-015; NFR-004                           | Planned              |
 | RISK-M2-04: Open    | Risk     | Sensitive data being exposed to unauthorised users                                          | Enforce role-based request access checks.                                                             | FR-001, FR-007, FR-008, FR-010, FR-012; NFR-005, NFR-007 | Planned              |
-
+| RISK-M2-05: Open    | Risk     | Lifecycle rules being bypassed or becoming over-simplified as the model evolves             | Route status changes through `TransitionService`; use PR review and tests; revisit the pattern through a new ADR if state-specific behaviour becomes materially different. | FR-007, FR-009, FR-011, FR-015; NFR-004 | ADR-04; lifecycle tests |
 ---
 
 ## 1.13. Implementation & Verification
 
 ### M2 implementation evidence
 
-The `state-management` branch contains an initial Core implementation of the role-based authorization/visibility decision recorded in ADR-05. 
+The `state-management` branch contains an initial Core implementation of the two M2 design decisions recorded in ADR-04 and ADR-05.
 
-**Authorization artefacts**
+**Lifecycle implementation artefacts (ADR-04)**
+- `src/CivicConnect.Core/Lifecycle/RequestStatus.cs`
+- `src/CivicConnect.Core/Lifecycle/TransitionRules.cs`
+- `src/CivicConnect.Core/Lifecycle/TransitionService.cs`
+- `src/CivicConnect.Core/Lifecycle/IRequestRepository.cs`
+
+**Authorization artefacts (ADR-05)**
 - `src/CivicConnect.Core/Authorization/ActorRole.cs`
 - `src/CivicConnect.Core/Authorization/ActorContext.cs`
 - `src/CivicConnect.Core/Authorization/StaffGroup.cs`
@@ -592,7 +616,10 @@ The `state-management` branch contains an initial Core implementation of the rol
 
 * **SEN381 Master Project Brief v1.0**
 * **SEN381 Milestone 1 Brief v1.0**
+* **ADR-04 — Request Lifecycle Control** (CivicConnect, M2, 2026-09-30).
 * **ADR-05 — Role-Based Authorization and Request Visibility** (CivicConnect, M2, 2026-09-30).
+* **ADR-06 — Technology Stack** (CivicConnect, M2, 2026-09-30).
+* **CR-M2-01 — Status Model Clarification** (CivicConnect, M2, 2026-09-30).
 * Indeed Editorial Team. Business value. Available at: https://www.indeed.com/career-advice/career-development/business-value (Accessed 9 September 2026).
 * ProjectManager. How to write a project scope statement. Available at: https://www.projectmanager.com/blog/project-scope-statement (Accessed 9 September 2026).
 * Project Management Academy. Project scope statement. Available at: https://projectmanagementacademy.net/resources/blog/project-scope-statement-pmp/ (Accessed 9 September 2026).
