@@ -1,7 +1,6 @@
 # CR-M2-01: Request Status Model Simplification and Clarification
 
-**Suggested repo location:** `docs/change/CR-M2-01.md`
-**Status:** DRAFT: awaiting review by two team members other than the author
+**Status:** Accepted
 
 ## 1. Change Request Record (Master Brief Appendix E)
 
@@ -23,7 +22,7 @@
 | Cost impact | None. |
 | Risk impact | Reduces requirements-ambiguity risk. Introduces a reporting-granularity risk (section 6). |
 | Recommendation | ACCEPT, subject to team approval of the scope reduction |
-| Approval / rationale | [Pending. Record reviewer names, dates and decision here after review.] |
+| Approval / rationale | Accepted after team review. The four-status model and associated scope changes are approved for M2. Reviewers: Aidan and Lethebe, 2026-09-30. |
 
 ## 2. Problem Found in the M1 Baseline
 
@@ -95,5 +94,6 @@ Original wording is retained. It is not deleted from PED v1.0.0.
 
 | Reviewer | Date | Decision | Comments |
 |---|---|---|---|
-| | | | |
+| Aidan | 2026-09-30 | Accepted | Reviewed and approved the status-model clarification and associated scope changes. |
+| Lethebe | 2026-09-30 | Accepted | Reviewed and approved the status-model clarification and associated scope changes. |
 | | | | |

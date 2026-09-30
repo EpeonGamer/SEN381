@@ -27,7 +27,7 @@
 * **Later Consequence:** TBD
 
 
-## DEC-M2-02: Centralised Role-Based Request Visibility and Authorization
+## DEC-M2-05: Centralised Role-Based Request Visibility and Authorization
 
 * **Date:** 2026-09-30
 * **Description:** Establish a dedicated authorization responsibility for request visibility and operational permissions, separate from lifecycle control.
@@ -38,3 +38,16 @@
 * **Risks:** Future implementations could bypass the policy; mitigated through service boundaries, tests and PR review.
 * **Evidence:** ADR-05; 29 Core tests passing after implementation; `src/CivicConnect.Core/Authorization/`; `tests/CivicConnect.Core.Tests/AuthorizationTests.cs`.
 * **Later Consequence:** Integrate `VisibilityScope` with list queries and authenticated API actors when those layers are implemented.
+
+
+## DEC-M2-06: Technology Stack Selection
+
+* **Date:** 2026-09-30
+* **Description:** Use C#, ASP.NET, PostgreSQL and npgSQL as the technology stack.
+* **Context & Constraints:** CivicConnect requires technology stack for development. The stack needs to adhere to the Architecturally significant requirements established in the PED.
+* **Alternatives:** Python Programming, Django, with PostgreSQL/SQLite; Java, SpringBoot, with PostgreSQL, JUnit and Maven; Typescript, Node/Express, with PostgreSQL/Vitest/Jest, React/Server-rendered Pages.
+* **Decision & Rationale:** The reasoning behind the decisions is due to the familiarity of the software available, the languages and the integrations to the development team. Additionally security and maintainability are also adequately accounted for from these technologies.
+* **Trade-offs:** Potential feature of other software not explored; Python may have simpler development, combined with unknown future integration support.
+* **Risks:** Potential performance and cost parameters if the technology stack changes.
+* **Evidence:** ADR-06; StackDiagram; PED 1.12; CivicConnect A2 design quality and Design Pattern research.
+* **Later Consequence:** Should there be a change in technology stack used, the software to implement the stack will also be required to change.
