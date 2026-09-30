@@ -455,6 +455,47 @@ Based on Master Project Brief Appendix D.
 | Feedback                               | feedback_id PK, request_id FK → ServiceRequest, recipient_user_id FK → User, event_type, message, created_at, read_at *(optional)*                                     |
 | ManagementReportingView – Dervied View | request_id, category_name, current_status, assigned_staff_id, submitted_at, due_at, calculated is_overdue                                                              |
 
+- Persistence model(s) recommendation
+
+A suggested persistence strategy or model for this project is to use a Relational database. Relational databases, such as Oracle or PostgreSQL, are especially suited to store structured data. Most of those relational databases are able to fulfil the ACID principles and can therefore ensure consistency (Züllighoven, 2005).
+
+In regard to structure, relational databases store data in structured tables with rows and columns which contain relationships with other tables within the database. Relational databases organize data in tables with different columns. Each entry of a table is represented as a row. Each data field of a data entry becomes an entry of a column in the corresponding row (Züllighoven, 2005).
+
+In regard to relationships, relational databases enforce a rule that table must contain a primary key. Pairing primary keys with foreign keys is how relationships are enforced and governed within PostgreSQL and other relational database management systems. A foreign key constraint specifies that the values in a column (or a group of columns) must match the values appearing in some row of another table, this maintains the *referential integrity* between two related tables (PostgreSQL Documentation, (2025). There are different relationship types: One-to-One, One-to-Many, Many-to-Many.
+
+In regard to access patterns, they describe how a system reads, write and queries that data that it stores using SQL. PostgreSQL primarily uses queries to read and write its data. The process of retrieving or the command to retrieve data from a database is called a *query*. In SQL the SELECT command is used to specify queries (PostgreSQL Documentation, 2025). Other queries include INSERT, DELETE, UPDATE, etc.
+
+In regards to integrity, this business would like to keep their data accurate, consistent and reliable by using any selected relational database management system. PostgreSQL strictly enforces data accuracy, reliability and security by use of methods such as: Role-based access control - A *secure schema usage pattern* prevents untrusted users from changing the behaviour of other users' queries (PostgreSQL Documentation, 2025). Row-level security - Tables can have *row security policies* that restrict, on a per-user basis, which rows can be returned by normal queries or inserted, updated, or deleted by data modification commands *(PostgreSQL Documentation, 2025).* Constraints - Constraints give you as much control over the data in your tables as you wish. If a user attempts to store data in a column that would violate a constraint, an error is raised (PostgreSQL Documentation, 2025). These constraints come in several ways: such as Check constraints, Not-Null constraints, and Unique constraints.
+
+In regards to consistency, data consistency refers to the state of data in which all copies or instances are the same across all systems and databases (Arnold, 2024). Relational database systems ensure this by making use of ACID properties. Here, the persistence service guarantees the ACID (Atomicity, Consistency, Isolation, Durability) properties of transactions for clients (Züllighoven, 2005). These properties ensure consistency by ensuring that transactions move from one state to the next. If a failure occurs, the database will roll back the transaction back to its previous state. A transaction transition is either complete or not.
+
+Regarding backups or recovery implications, this refers to the ability for database management systems to be able to create data copies of their databases and restoring systems whenever failures or errors occur. The chosen persistence strategy must be able to apply these backup/recovery techniques without fault. Regular and protected backups must be tested to ensure that records can be recovered after a database failure. The team should reach agreements on establishing Recovery-Point-Objectives and Recovery-Time-Objectives.
+
+The recommended persistence strategy to be used is relational database management systems such as PostgreSQL. This use of the persistence strategy supports the M1 requirement stating that Update request status through controlled transitions. And also, that a status or assignment updates either save completely or leaves the request unchanged.
+
+ 
+
+- Database bottleneck/SPOF, scalability, availability and backup/recovery implications
+
+SPOF refers to Single point of failure and regarding relational database management systems, only one instance (the primary node) handles the read and write traffic and deployment operates on a single primary server. This introduces several risks on that single instance. If that primary instance where to fail or encounter an issue, the whole system’s data is affected.
+
+Regarding scalability, these systems are able to scale exceptionally well and in a different number of ways. The core scaling techniques are known as Vertical Scaling (which is upgrading hardware capacity) and horizontal scaling (which is distributing the database across multiple instances or nodes). Systems such as PostgreSQL have trouble with horizontal scaling. PostgreSQL's architectural design is fundamentally optimized for vertical scaling, meaning you expand capacity by adding more CPU, memory, and disk resources to a single server. This design presents a significant limitation for applications demanding exceptionally high transaction volumes, such as payment systems processing hundreds of thousands of transactions per second (Sirius Open Source, n.d.). This does not mean that it cannot scale horizontally, it requires added effort to ensure that the system is able to scale horizontally. Without careful planning for horizontal scaling, database owners can fall risk to breaking the system holding their data.
+
+Regarding availability, by default the SPOF factor needs to be eliminated to ensure that the system can operate should a part of it encounter a failure. PostgreSQL does not support native failover which hurts the availability of their database servers, the database management system requires third party tools to be integrated into the system. My main issue with what PostgreSQL has become is that it is difficult to configure and maintain in terms of providing high availability (HA) and optimal performance (Kolovson, 2023). Failover managers such as Patroni or repmgr need to be utilised to ensure a standby server is present should the main server fail. Database servers can work together to allow a second server to take over quickly if the primary server fails (high availability), or to allow several computers to serve the same data (load balancing) (PostgreSQL Documentation, 2025).
+
+Regarding backup and recovery, this refers to the ability for database management systems to be able to create data copies of their databases and restoring systems whenever failures or errors occur.
+
+- A2 persistence research
+
+The focus of assignment 2’s persistence research is audit logging. It later recommends using synchronous transactions. This how the flow will commence: when a request changes, the change and audit record are both committed or rolled back. This supports the NFR-004, which states that, a service request lifecycle will either save all request details or not when an error occurs during an assignment or status update.
+
+Regarding the validation, the A2 persistence states that input form elements,  
+such as dropdowns, are populated with only valid statuses and run local verification of  
+data to lower the chance of user error. This ensures that user inputs is kept to adhere the validation rules of the system. It also states that any remaining errors can be eliminated at the business logic level where actor permissions are validated and  
+transaction rules are applied.
+
+A2’s audit logging analysis recommends using synchronous commits for the simple fact that this approach pairs operations and their audit logs within a single transaction block that succeeds or fails together.
+
 ---
 
 ## 1.13. Implementation & Verification
