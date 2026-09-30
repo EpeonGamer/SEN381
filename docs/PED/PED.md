@@ -443,6 +443,28 @@ Based on Master Project Brief Appendix D.
 ## 1.12. System Architecture & Design
 
 ![StateMachineDiagram](../architecture/diagrams/StateMachine.png)
+
+## ASRs, Quality Drivers and Architecture decisions
+
+The architectural decisions driving the technogoly used for CivicConnect are driven by the shareholders of the project, as well as the development team's capabilities. The requirements for the project that have been determined to be significant include Security, Accessibility, Performance, Integration of systems, Data integrity and Maintainability. Users of CivicConnect will need access to the technology used, whilst keeping data secure. The performance of the project will also need to be adequate for users to have a seemless experience. Meanwhile, the developers and management will want to ensure data is secure and the correct data is being utilized in CivicConnect. Developers will also want an easily maintainable system to both add features in the future as well as fix any defects that arise in the short-term. The developers will therefore also want a system with functional integrations, with adequate cohesion and coupling of systems for maximum functionality of CivicConnect. With this in mind, the following Technology stack has been determined to be ideal for CivicConnect:
+
+
+C# Programing, ASP.NET Core, PostgreSQL Database System, with npgSQL integration\
+The reason for this is the developers have experience in dealing with these systems, thereby fulfilling maintainability requirements. npgSQL also allows PostgreSQL integration with C# and .NET frameworks. Additionally C# will allow efficient programming for better performance, while providing adequate security measures that are built in to C#. Lastly, because everything is open-source and free, it is both accessible to the users and to the developers and meets the shareholder's requirements for costs.
+
+The following stacks were also analyzed and elements of each stack can also be utilized for CivicConnect:
+
+Python Programming, Django, with PostgreSQL/SQLite\
+Java, SpringBoot, with PostgreSQL, JUnit and Maven\
+Typescript, Node/Express, with PostgreSQL/Vitest/Jest, React/Server-rendered Pages
+
+The stack will interact as per the following diagram:\
+![StackDiagram](../architecture/diagrams/StackDiagram.png)
+
+## Technology Decisions, integration and deployment compatibility
+
+For C# programming the technology used will be Microsoft Visual Studio. The decision to do so is due to its familiarity to the developers, the integration capabilities with .Net frameworks, as well as npgSQL. Additionally, should there be a decision to switch to other programing languages at any point it is a simple transition within the software. On the backend, for the server, intially a local server will be used for Postgre SQL, however for testing purposes Google Cloud Servers can also be utilized. The technologies utilized here comform to the intial ASR guidelines, however should there be a decision to move away from the initial stack, software such as Netbeans IDE can be used for Java, while Microsoft VS Code can be utilized for Python and Node/Express. All options are compatible and have adequate integration for Postgre SQL, as well as complementary software available in their respective stacks. 
+
 ## Data and persistence baseline
 
 - Important data entities/aggregates, relationships, ownership and lifecycle implications
