@@ -425,6 +425,20 @@ Based on Master Project Brief Appendix D.
 ## 1.12. System Architecture & Design
 
 ![StateMachineDiagram](../architecture/diagrams/StateMachine.png)
+## Data and persistence baseline
+
+- Important data entities/aggregates, relationships, ownership and lifecycle implications
+
+| Entity/Aggregate | Relationship | Ownership | Lifecycle Implications |
+| --- | --- | --- | --- |
+| User | One user can submit and can own multiple requests. Staff can also be responsible for multiple requests and the processing of those requests. | Each user only has access to their content and authorised actions. | Upon account creation, user is granted access to requester permissions and their identity is established. <br> Account deletion results in credentials getting revoked and access role is removed, |
+| ServiceRequest | Each request belongs to one user and one category. It has one current status and can contain multiple assignments. | The requester creates the requests, the authorised staff manage and process the requests | Request created after submit button is clicked and goes through a process. Status changes are recorded which contain the author, date and why the status was changed. Old requests are preserved in a history list |
+| RequestCategory | One category can contain multiple requests | Requesters choose from the available categories whilst the authorised staff maintain the category list | Categories should be linked to requests. Category creation and deletion is managed by the staff. Category deletion does not remove association to existing requests. |
+| Assignment responsibility | Each assignment links an authorised staff member to a request. A request can contain multiple assignments. | Authorised staff allocate the responsibility, and the assigned staff is responsible for the requests processing | Request assignment should not create conflicts with existing current ownerships over requests. Ownership can be shared or be given to one staff. |
+| Status History | One request can contain multiple status changes over time. | Authorised staff control the status changes of a request | Add a history entry whenever status changes. Updating the current status and history should be done within one transaction so they do not conflict. |
+| Request Actions/ Comments | One request contains multiple actions and has many entries | Authorised staff record their changes and request handling actions | Actions build up during request processing. Changes are kept traceable as evidence. |
+| Feedback | A request can generate many notifications/ feedback which are addressed to the requester | The system generates feedback for the requester regarding the request status | Feedback generated after related request changes. Failure and retries are also recorded. |
+| Management Reporting View | Combines information from requests, categories, assignments, and changes in a report. Also viewing request information by status or category. | Management accesses authorised reporting information | Reports reflecting request changes and actions and should also preserve the distinction between open, resolved, and closed requests. |
 
 ---
 
