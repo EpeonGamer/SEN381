@@ -415,7 +415,7 @@ Based on Master Project Brief Appendix D.
 
 ## 1.12. System Architecture & Design
 
-*(To be baselined in Milestone 2)*
+![StateMachineDiagram](../architecture/diagrams/StateMachine.png)
 
 ---
 
