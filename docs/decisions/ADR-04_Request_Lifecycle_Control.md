@@ -104,10 +104,12 @@ Diagram: `docs/architecture/request-status-state-machine` (CR-M2-01, section 3 m
 | Requirements | FR-007, FR-009, FR-011, FR-015, NFR-004 (FR-001 for authorisation) |
 | Drivers | FEC-02 maintainability, FEC-03 testability, FEC-01 traceability |
 | Change record | CR-M2-01 |
-| Related ADRs | ADR-02 (persistence: synchronous commit) |
+| Related ADRs | ADR-02 (persistence: synchronous commit); ADR-05 (role-based authorization) |
 | Risk Register | [Add risk ID: lifecycle bypass / over-simplification] |
 | RTM columns to fill | Design/interface decision: ADR-04. Implementation evidence: `src/CivicConnect.Core/Lifecycle/` [branch/PR: TBD until merged]. Verification evidence: `tests/CivicConnect.Core.Tests/LifecycleTests.cs` [run result: TBD until run in the team's xUnit project]. |
 | AI Usage Register | [Entry ID: TBD] |
+
+ADR-05 refines the authorization responsibility originally represented by the placeholder `ActorRole` check in this ADR. The lifecycle decision remains responsible for controlling state transitions; authorization is now owned by the dedicated authorization policy.
 
 Implementation and test evidence are recorded as **TBD** until they exist. Do not fill them in speculatively.
 

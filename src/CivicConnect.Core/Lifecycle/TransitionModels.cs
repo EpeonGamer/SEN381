@@ -1,17 +1,12 @@
-namespace CivicConnect.Core.Lifecycle;
+using CivicConnect.Core.Authorization;
 
-/// <summary>
-/// Placeholder role type. Replace with the shared role type when the role-based access
-/// decision (second design ADR) is implemented.
-/// </summary>
-public enum ActorRole { Requester, Staff, Manager }
+namespace CivicConnect.Core.Lifecycle;
 
 /// <summary>A request to change a service request's status.</summary>
 public sealed record TransitionRequest(
     Guid RequestId,
     RequestStatus To,
-    string ActorId,
-    ActorRole ActorRole,
+    ActorContext Actor,
     string? AssigneeId = null,
     string? Reason = null,
     string? ResolutionNote = null);

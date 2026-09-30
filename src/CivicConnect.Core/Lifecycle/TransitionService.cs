@@ -1,3 +1,5 @@
+using CivicConnect.Core.Authorization;
+
 namespace CivicConnect.Core.Lifecycle;
 
 /// <summary>
@@ -10,10 +12,15 @@ public sealed class TransitionService
 {
     private readonly IRequestRepository _repository;
     private readonly TimeProvider _clock;
+    private readonly IVisibilityPolicy _visibilityPolicy;
 
-    public TransitionService(IRequestRepository repository, TimeProvider? clock = null)
+    public TransitionService(
+        IRequestRepository repository,
+        IVisibilityPolicy? visibilityPolicy = null,
+        TimeProvider? clock = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _visibilityPolicy = visibilityPolicy ?? new RoleVisibilityPolicy();
         _clock = clock ?? TimeProvider.System;
     }
 
@@ -21,8 +28,9 @@ public sealed class TransitionService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        // Only authorised staff may change status (FR-009, FR-011, FR-015).
-        if (request.ActorRole != ActorRole.Staff || string.IsNullOrWhiteSpace(request.ActorId))
+        // Authorization is owned by ADR-05, not by the lifecycle service.
+        if (string.IsNullOrWhiteSpace(request.Actor.Id) ||
+            !_visibilityPolicy.GetScope(request.Actor).Allows(AuthorizationAction.ChangeStatus))
             return TransitionResult.Fail(TransitionFailure.NotAuthorised);
 
         var current = await _repository.GetStatusAsync(request.RequestId, cancellationToken);
@@ -40,7 +48,7 @@ public sealed class TransitionService
             return TransitionResult.Fail(TransitionFailure.MissingResolutionNote);
 
         var record = new TransitionRecord(
-            request.RequestId, current.Value, request.To, request.ActorId, _clock.GetUtcNow(),
+            request.RequestId, current.Value, request.To, request.Actor.Id, _clock.GetUtcNow(),
             request.AssigneeId, request.Reason, request.ResolutionNote);
 
         // Storage failures propagate as exceptions; the repository has rolled back (status unchanged).

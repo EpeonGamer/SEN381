@@ -1,3 +1,4 @@
+using CivicConnect.Core.Authorization;
 using CivicConnect.Core.Lifecycle;
 using Xunit;
 
@@ -76,7 +77,10 @@ public class LifecycleTests
     public async Task Only_staff_may_change_status(ActorRole role)
     {
         var repo = new FakeRepository(RequestStatus.Unassigned);
-        var request = Staff(RequestStatus.Assigned, assignee: "staff-2") with { ActorRole = role };
+        var request = Staff(RequestStatus.Assigned, assignee: "staff-2") with
+        {
+            Actor = new ActorContext("actor-1", role)
+        };
         var result = await new TransitionService(repo).ApplyAsync(request);
 
         Assert.Equal(TransitionFailure.NotAuthorised, result.Failure);
@@ -111,7 +115,9 @@ public class LifecycleTests
     }
 
     private static TransitionRequest Staff(RequestStatus to, string? assignee = null, string? reason = null, string? note = null) =>
-        new(Id, to, "staff-1", ActorRole.Staff, assignee, reason, note);
+        new(Id, to, new ActorContext("staff-1", ActorRole.Staff,
+            new[] { new StaffGroup("General", new HashSet<string> { "General" }) }),
+            assignee, reason, note);
 
     private sealed class FakeRepository : IRequestRepository
     {
