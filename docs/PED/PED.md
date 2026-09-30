@@ -496,6 +496,20 @@ transaction rules are applied.
 
 A2’s audit logging analysis recommends using synchronous commits for the simple fact that this approach pairs operations and their audit logs within a single transaction block that succeeds or fails together.
 
+- Significant decisions/risks
+
+| DRAFT ID and status | Type     | Decision/Risk                                                                               | Response                                                                                              | Related requirements                                     | Application Evidence |
+|---------------------|----------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|----------------------------------------------------------|----------------------|
+| DEC-M2-01: Proposed | Decision | Use the relational database system as the persistence method                                | The data to be stored will contain relationships among them. Referential integrity enforced.          | FR-001–FR-015; NFR-004, NFR-007                          | Planned              |
+| DEC-M2-02: Proposed | Decision | Storing current request state along with history information. Retain assignment history     | Current state makes reads more straightforward. Update both status and history atomically.            | FR-004, FR-005, FR-007, FR-009–FR-015                    | Planned              |
+| DEC-M2-03: Proposed | Decision | Save assignment/status changes within one transaction. Failure results in rejections.       | This prevents conflicting updates and silents overwrites by the staff.                                | FR-009, FR-010, FR-011, FR-015; NFR-004                  | Planned              |
+| DEC-M2-04: Proposed | Decision | Start with one primary node for the database and only adding replicas when it is warranted. | This is suitable for a 3-man development team due to its low cost but still being operational.        | FR-005, FR-006, FR-012–FR-014; NFR-001, NFR-003          | Planned              |
+| RISK-M2-01: Open    | Risk     | Database primary node becoming unavailable. Which stops read and write queries.             | Define the backup and restore methods to prepare for future possible errors.                          | NFR-003, NFR-004                                         | Planned              |
+| RISK-M2-02: Open    | Risk     | Growing data such as history and reporting queries which results in slow performance        | Measure system and query performance as load and data grows and add necessary tweaks such as indexes. | FR-005, FR-006, FR-012–FR-014; NFR-001                   | Planned              |
+| RISK-M2-03: Open    | Risk     | Incomplete transactions or updates creating inconsistent request records or data            | Enforce and ensure authorised transactions and conflict handling.                                     | FR-009–FR-011, FR-015; NFR-004                           | Planned              |
+| RISK-M2-04: Open    | Risk     | Sensitive data being exposed to unauthorised users                                          | Enforce role-based request access checks.                                                             | FR-001, FR-007, FR-008, FR-010, FR-012; NFR-005, NFR-007 | Planned              |
+
+
 ---
 
 ## 1.13. Implementation & Verification
