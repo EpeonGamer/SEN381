@@ -440,6 +440,21 @@ Based on Master Project Brief Appendix D.
 | Feedback | A request can generate many notifications/ feedback which are addressed to the requester | The system generates feedback for the requester regarding the request status | Feedback generated after related request changes. Failure and retries are also recorded. |
 | Management Reporting View | Combines information from requests, categories, assignments, and changes in a report. Also viewing request information by status or category. | Management accesses authorised reporting information | Reports reflecting request changes and actions and should also preserve the distinction between open, resolved, and closed requests. |
 
+- initial data model/schema
+
+![ERDDiagram](../architecture/diagrams/ERDDiagram.png)
+
+| Table                                  | Fields                                                                                                                                                                 |
+|----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| User                                   | user_id (PK), first_name, last_name, email, UQ, password_hash, role, is_active, created_at                                                                             |
+| RequestCategory                        | category_id PK, category_name UQ, description, is_active                                                                                                               |
+| StatusHistory                          | history_id PK, request_id FK → ServiceRequest, changed_by_user_id FK → User, previous_status *(optional)*, new_status, changed_at, reason *(optional)*                 |
+| ServiceRequest                         | request_id PK, requester_id FK → User, category_id FK → RequestCategory, title, description, current_status, submitted_at, updated_at, due_at *(optional)*, version    |
+| AssignmentResponsibility               | assignment_id PK, request_id FK → ServiceRequest, staff_user_id FK → User, assigned_by_user_id FK → User, assigned_at, accepted_at *(optional)*, ended_at *(optional)* |
+| RequestActionsComments                 | entry_id PK, request_id FK → ServiceRequest, author_user_id FK → User, entry_type, content, visibility, created_at                                                     |
+| Feedback                               | feedback_id PK, request_id FK → ServiceRequest, recipient_user_id FK → User, event_type, message, created_at, read_at *(optional)*                                     |
+| ManagementReportingView – Dervied View | request_id, category_name, current_status, assigned_staff_id, submitted_at, due_at, calculated is_overdue                                                              |
+
 ---
 
 ## 1.13. Implementation & Verification
