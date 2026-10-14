@@ -22,6 +22,8 @@ public sealed class VisibilityScope
     }
 
     public bool OwnRequestsOnly => _ownerId is not null;
+    public string? OwnerId => _ownerId;
+    public IReadOnlySet<string> PermittedRequestTypes => _requestTypes;
     public bool AllRequests { get; }
     public IReadOnlySet<AuthorizationAction> AllowedActions { get; }
 

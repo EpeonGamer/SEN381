@@ -20,7 +20,8 @@ public enum TransitionFailure
     MissingAssignee,
     MissingReason,
     MissingResolutionNote,
-    ConcurrencyConflict
+    ConcurrencyConflict,
+    InvalidAssignee
 }
 
 public sealed record TransitionResult(bool Succeeded, TransitionFailure Failure, RequestStatus? NewStatus = null)
@@ -38,4 +39,5 @@ public sealed record TransitionRecord(
     DateTimeOffset At,
     string? AssigneeId,
     string? Reason,
-    string? ResolutionNote);
+    string? ResolutionNote,
+    long ExpectedVersion = 0);
