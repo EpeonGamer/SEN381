@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CivicConnect.Core", "src\Ci
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CivicConnect.Core.Tests", "tests\CivicConnect.Core.Tests\CivicConnect.Core.Tests.csproj", "{BE2912A9-E212-49A4-90D5-EAF76FCF0A23}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CivicConnect.Data", "src\CivicConnect.Data\CivicConnect.Data.csproj", "{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,18 +43,6 @@ Global
 		{BE2912A9-E212-49A4-90D5-EAF76FCF0A23}.Release|x64.Build.0 = Release|Any CPU
 		{BE2912A9-E212-49A4-90D5-EAF76FCF0A23}.Release|x86.ActiveCfg = Release|Any CPU
 		{BE2912A9-E212-49A4-90D5-EAF76FCF0A23}.Release|x86.Build.0 = Release|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Debug|x64.Build.0 = Debug|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Debug|x86.Build.0 = Debug|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Release|x64.ActiveCfg = Release|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Release|x64.Build.0 = Release|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Release|x86.ActiveCfg = Release|Any CPU
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +50,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{EB22C8B8-1EDD-4D06-941A-17CE4AC59417} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{BE2912A9-E212-49A4-90D5-EAF76FCF0A23} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{5C3054ED-C3AC-4517-9ACD-726ED7B68A28} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ABE0AB50-5AFD-4E3C-BD33-808723FE8B0C}
 	EndGlobalSection
 EndGlobal
