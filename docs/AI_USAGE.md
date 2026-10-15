@@ -81,3 +81,14 @@
 * **Decision:** Accepted with modifications.
 * **Issues found & corrected:** Unfounded assumptions in the initial output were removed or revised during team review.
 
+
+### AI-M3-01: SQLite repository, schema and integration tests
+
+* **Date:** 2026-10-15
+* **Student:** Kasper
+* **Tool Used:** Claude Sonnet 5.5
+* **Engineering Task:** Create the missing persistence layer (`src/CivicConnect.Data`) so the Core can be integration-tested against a real database.
+* **AI Contribution:** Drafted the SQLite schema, `SqliteRequestRepository` (all `IRequestRepository` members), `SqliteSetup` seeding helper, five integration tests and ADR-07.
+* **Verification Applied:** TO BE COMPLETED BY KASPER after review and local run. Checks done by the AI: SQL schema, scoping query, version check and rollback behaviour were exercised against SQLite 3.45; C# was compile-checked against stubbed package APIs only (NuGet was unreachable), so it has NOT been run with the real package or xunit.
+* **Decision:** TO BE COMPLETED (accepted / accepted with modifications / rejected).
+* **Issues Found & Corrected:** TO BE COMPLETED after local build and test run.
