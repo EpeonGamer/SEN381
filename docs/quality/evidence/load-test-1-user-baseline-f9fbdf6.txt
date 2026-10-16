@@ -1,0 +1,10 @@
+Machine: Intel Core i5-8250U @ 1.60GHz, 20 GB RAM, Windows 11, .NET 8.0.32 runtime; client and server on the same machine (localhost).
+Date: 2026-10-16. Command: dotnet run --project tools/CivicConnect.LoadTest -c Release -- http://localhost:5090 <users> <seconds>
+Staging release: 0.3.0+f9fbdf6 (before WAL)
+Target http://localhost:5090/  |  1 concurrent users  |  20 s
+
+| Operation | Requests | Errors | Error rate | p50 ms | p95 ms | Max ms | Throughput req/s |
+|---|---|---|---|---|---|---|---|
+| list | 1585 | 0 | 0,0% | 3 | 7 | 21 | 79,2 |
+| submit | 1585 | 0 | 0,0% | 8 | 14 | 28 | 79,2 |
+
