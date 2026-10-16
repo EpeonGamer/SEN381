@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CivicConnect.Api.Tests;
 
@@ -32,7 +33,7 @@ public sealed class ApiTarget : IDisposable
 
     public bool IsDeployed => _deployedBaseUrl is not null;
 
-    private ApiTarget(Uri? deployedBaseUrl, string? deployedPassword)
+    private ApiTarget(Uri? deployedBaseUrl, string? deployedPassword, TimeProvider? clock = null)
     {
         _deployedBaseUrl = deployedBaseUrl;
         if (IsDeployed)
@@ -45,6 +46,8 @@ public sealed class ApiTarget : IDisposable
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
         {
             host.UseEnvironment("Testing");
+            if (clock is not null)
+                host.ConfigureServices(services => services.AddSingleton<TimeProvider>(clock));
             host.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:CivicConnect"] = $"Data Source={_databasePath}",
@@ -57,7 +60,7 @@ public sealed class ApiTarget : IDisposable
     }
 
     /// <summary>Always in-process: used by the API integration tests, which need a fresh database.</summary>
-    public static ApiTarget InProcess() => new(null, null);
+    public static ApiTarget InProcess(TimeProvider? clock = null) => new(null, null, clock);
 
     /// <summary>Deployed environment when configured, otherwise in-process. Used by the E2E tests.</summary>
     public static ApiTarget FromEnvironment()

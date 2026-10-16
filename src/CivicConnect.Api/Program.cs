@@ -10,16 +10,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
 // ---- 1. Core services wired to SQLite (ADR-04, ADR-05, ADR-07) ----------------------------------
 builder.Services.AddSingleton(sp => CivicConnectDatabase.FromConfiguration(
     sp.GetRequiredService<IConfiguration>(), sp.GetRequiredService<IHostEnvironment>()));
 builder.Services.AddSingleton<IRequestRepository>(sp =>
-    new SqliteRequestRepository(sp.GetRequiredService<CivicConnectDatabase>().ConnectionString));
+    new SqliteRequestRepository(sp.GetRequiredService<CivicConnectDatabase>().ConnectionString,
+        sp.GetRequiredService<TimeProvider>()));
 builder.Services.AddSingleton(sp =>
     new SqliteCredentialStore(sp.GetRequiredService<CivicConnectDatabase>().ConnectionString));
-builder.Services.AddSingleton(sp => new RequestService(sp.GetRequiredService<IRequestRepository>()));
-builder.Services.AddSingleton(sp => new TransitionService(sp.GetRequiredService<IRequestRepository>()));
+builder.Services.AddSingleton(sp => new RequestService(sp.GetRequiredService<IRequestRepository>(),
+    clock: sp.GetRequiredService<TimeProvider>()));
+builder.Services.AddSingleton(sp => new TransitionService(sp.GetRequiredService<IRequestRepository>(),
+    clock: sp.GetRequiredService<TimeProvider>()));
 
 // Statuses travel as names ("Assigned"), never as numbers.
 builder.Services.ConfigureHttpJsonOptions(options =>

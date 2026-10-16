@@ -9,9 +9,9 @@ public sealed record ServiceRequest(Guid Id, string RequesterId, string Category
 public sealed record RequestComment(Guid RequestId, string AuthorId, string Content, DateTimeOffset At);
 
 public sealed record RequestQuery(Guid? Id = null, string? Category = null, RequestStatus? Status = null,
-    bool SortByCategory = false, int Limit = 50, int Offset = 0);
+    bool SortByCategory = false, int Limit = 50, int Offset = 0, bool? Overdue = null);
 
-public sealed record ActivityCounts(long Open, long Rejected, long Resolved);
+public sealed record ActivityCounts(long Open, long Rejected, long Resolved, long Overdue = 0);
 
 public enum RequestFailure
 {

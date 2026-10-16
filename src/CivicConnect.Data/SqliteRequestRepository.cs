@@ -20,12 +20,14 @@ public sealed class SqliteRequestRepository : IRequestRepository
         "SELECT id, requester_id, category, title, description, status, submitted_at, updated_at, assignee_id, version FROM requests";
 
     private readonly string _connectionString;
+    private readonly TimeProvider _clock;
 
-    public SqliteRequestRepository(string connectionString)
+    public SqliteRequestRepository(string connectionString, TimeProvider? clock = null)
     {
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new ArgumentException("A connection string is required.", nameof(connectionString));
         _connectionString = connectionString;
+        _clock = clock ?? TimeProvider.System;
     }
 
     public async Task<ServiceRequest?> GetAsync(Guid requestId, CancellationToken cancellationToken = default)
@@ -109,7 +111,7 @@ public sealed class SqliteRequestRepository : IRequestRepository
         await using var connection = await OpenAsync(cancellationToken);
         await using var command = connection.CreateCommand();
         var sql = new StringBuilder(RequestSelect);
-        AppendFilters(command, sql, scope, query);
+        AppendFilters(command, sql, scope, query, _clock.GetUtcNow());
         sql.Append(query.SortByCategory
             ? " ORDER BY category COLLATE NOCASE, submitted_at DESC, id"
             : " ORDER BY submitted_at DESC, id");
@@ -208,19 +210,22 @@ public sealed class SqliteRequestRepository : IRequestRepository
     {
         await using var connection = await OpenAsync(cancellationToken);
         await using var command = connection.CreateCommand();
-        // Open = Unassigned + Assigned (CR-M2-01 status model has no separate "overdue" state).
+        // Overdue remains a subset of Open; use the same instant for counting and filtering.
+        var now = _clock.GetUtcNow();
         var sql = new StringBuilder("""
             SELECT
               COALESCE(SUM(CASE WHEN status IN (0, 1) THEN 1 ELSE 0 END), 0),
               COALESCE(SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END), 0),
-              COALESCE(SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END), 0)
+              COALESCE(SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END), 0),
+              COALESCE(SUM(CASE WHEN status IN (0, 1) AND submitted_at < $overdueCutoff THEN 1 ELSE 0 END), 0)
             FROM requests
             """);
-        AppendFilters(command, sql, scope, query);
+        command.Parameters.AddWithValue("$overdueCutoff", Format(OverduePolicy.Cutoff(now)));
+        AppendFilters(command, sql, scope, query, now);
         command.CommandText = sql.ToString();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         await reader.ReadAsync(cancellationToken);
-        return new ActivityCounts(reader.GetInt64(0), reader.GetInt64(1), reader.GetInt64(2));
+        return new ActivityCounts(reader.GetInt64(0), reader.GetInt64(1), reader.GetInt64(2), reader.GetInt64(3));
     }
 
     public async Task<bool> SaveTransitionAsync(TransitionRecord record, CancellationToken cancellationToken = default)
@@ -320,7 +325,8 @@ public sealed class SqliteRequestRepository : IRequestRepository
     }
 
     /// <summary>Mirrors <see cref="VisibilityScope.CanView"/>: all, OR owner, OR permitted category. An empty scope returns nothing.</summary>
-    private static void AppendFilters(SqliteCommand command, StringBuilder sql, VisibilityScope scope, RequestQuery query)
+    private static void AppendFilters(SqliteCommand command, StringBuilder sql, VisibilityScope scope, RequestQuery query,
+        DateTimeOffset now)
     {
         sql.Append(" WHERE 1 = 1");
 
@@ -361,6 +367,13 @@ public sealed class SqliteRequestRepository : IRequestRepository
         {
             sql.Append(" AND status = $queryStatus");
             command.Parameters.AddWithValue("$queryStatus", (int)status);
+        }
+        if (query.Overdue is { } overdue)
+        {
+            sql.Append(overdue
+                ? " AND (status IN (0, 1) AND submitted_at < $filterOverdueCutoff)"
+                : " AND NOT (status IN (0, 1) AND submitted_at < $filterOverdueCutoff)");
+            command.Parameters.AddWithValue("$filterOverdueCutoff", Format(OverduePolicy.Cutoff(now)));
         }
     }
 

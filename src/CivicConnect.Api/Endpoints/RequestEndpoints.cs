@@ -32,7 +32,7 @@ public static class RequestEndpoints
 
     // FR-002, FR-003: a requester submits a categorised request; it starts as Unassigned.
     private static async Task<IResult> SubmitAsync(SubmitRequestBody body, ClaimsPrincipal user, RequestService service,
-        CivicConnectDatabase db)
+        CivicConnectDatabase db, TimeProvider clock)
     {
         if (body.Title?.Trim().Length > MaxTitleLength)
             return ApiResults.Error(400, "InvalidInput", $"Title must be at most {MaxTitleLength} characters.");
@@ -49,27 +49,28 @@ public static class RequestEndpoints
             return ApiResults.From(result.Failure);
 
         var created = await service.GetAsync(user.ToActor(), result.RequestId!.Value);
-        return Results.Created($"/api/requests/{created!.Id}", RequestSummary.From(created));
+        return Results.Created($"/api/requests/{created!.Id}", RequestSummary.From(created, clock.GetUtcNow()));
     }
 
     // FR-005, FR-006, FR-014: list only what the caller may see (filtering happens in SQL).
     private static async Task<IResult> ListAsync(ClaimsPrincipal user, RequestService service,
-        string? category, string? status, bool? sortByCategory, int? limit, int? offset)
+        string? category, string? status, bool? sortByCategory, int? limit, int? offset, bool? overdue, TimeProvider clock)
     {
         if (!TryParseStatus(status, out var parsedStatus))
             return ApiResults.Error(400, "InvalidInput", "Unknown status.");
         var query = new RequestQuery(Category: category, Status: parsedStatus,
-            SortByCategory: sortByCategory ?? false, Limit: limit ?? 50, Offset: offset ?? 0);
+            SortByCategory: sortByCategory ?? false, Limit: limit ?? 50, Offset: offset ?? 0, Overdue: overdue);
         if (query.Limit is < 1 or > 100 || query.Offset < 0)
             return ApiResults.Error(400, "InvalidInput", "limit must be 1-100 and offset 0 or more.");
 
         var found = await service.ListAsync(user.ToActor(), query);
-        return Results.Ok(found.Select(RequestSummary.From));
+        var now = clock.GetUtcNow();
+        return Results.Ok(found.Select(r => RequestSummary.From(r, now)));
     }
 
     // FR-004, FR-007, FR-008: detail with status history. "Not yours" and "does not exist" both
     // return 404, so other people's request ids cannot be confirmed (NFR-007).
-    private static async Task<IResult> GetDetailAsync(Guid id, ClaimsPrincipal user, RequestService service)
+    private static async Task<IResult> GetDetailAsync(Guid id, ClaimsPrincipal user, RequestService service, TimeProvider clock)
     {
         var actor = user.ToActor();
         var request = await service.GetAsync(actor, id);
@@ -78,7 +79,7 @@ public static class RequestEndpoints
 
         var history = await service.GetHistoryAsync(actor, id);
         var comments = await service.GetCommentsAsync(actor, id);
-        return Results.Ok(new RequestDetail(RequestSummary.From(request), request.Description, history, comments));
+        return Results.Ok(new RequestDetail(RequestSummary.From(request, clock.GetUtcNow()), request.Description, history, comments));
     }
 
     // FR-009, FR-011, FR-015: every status change goes through TransitionService.

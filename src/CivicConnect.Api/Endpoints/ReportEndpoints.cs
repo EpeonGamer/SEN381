@@ -14,13 +14,14 @@ public static class ReportEndpoints
             .RequireAuthorization(policy => policy.RequireRole("Manager"));
     }
 
-    // Open = Unassigned + Assigned. "Overdue" is not defined in the approved model yet (DEF-07).
-    private static async Task<IResult> GetCountsAsync(ClaimsPrincipal user, RequestService service, string? category, string? status)
+    // Open includes overdue requests; overdue is derived from submission time (CR-M3-02).
+    private static async Task<IResult> GetCountsAsync(ClaimsPrincipal user, RequestService service, string? category, string? status,
+        bool? overdue)
     {
         if (!RequestEndpoints.TryParseStatus(status, out var parsedStatus))
             return ApiResults.Error(400, "InvalidInput", "Unknown status.");
 
-        var counts = await service.GetCountsAsync(user.ToActor(), new RequestQuery(Category: category, Status: parsedStatus));
-        return Results.Ok(new ActivityCountsView(counts.Open, counts.Rejected, counts.Resolved));
+        var counts = await service.GetCountsAsync(user.ToActor(), new RequestQuery(Category: category, Status: parsedStatus, Overdue: overdue));
+        return Results.Ok(new ActivityCountsView(counts.Open, counts.Rejected, counts.Resolved, counts.Overdue));
     }
 }

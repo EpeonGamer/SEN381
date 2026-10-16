@@ -86,15 +86,22 @@ $("submit-form").addEventListener("submit", async (event) => {
 
 // ---- List -------------------------------------------------------------------------------------
 $("status-filter").addEventListener("change", refresh);
+$("overdue-filter").addEventListener("change", refresh);
 
 async function refresh() {
   const status = $("status-filter").value;
-  const requests = await api("GET", "/api/requests" + (status ? `?status=${status}` : ""));
+  const overdue = $("overdue-filter").value;
+  const filters = new URLSearchParams();
+  if (status) filters.set("status", status);
+  if (overdue) filters.set("overdue", overdue);
+  const query = filters.size ? `?${filters}` : "";
+  const requests = await api("GET", "/api/requests" + query);
 
   const rows = requests.map((request) => {
     const row = document.createElement("tr");
-    for (const value of [request.title, request.category, request.status, request.assigneeId ?? "—",
-                         new Date(request.submittedAt).toLocaleString()]) {
+    for (const value of [request.title, request.category,
+                         request.status + (request.isOverdue ? " (Overdue)" : ""), request.assigneeId ?? "—",
+                         new Date(request.submittedAt).toLocaleString(), new Date(request.dueAt).toLocaleString()]) {
       const cell = document.createElement("td");
       cell.textContent = value;
       row.append(cell);
@@ -111,10 +118,11 @@ async function refresh() {
   $("empty-list").hidden = requests.length > 0;
 
   if (currentUser.role === "Manager") {
-    const counts = await api("GET", "/api/reports/counts");
+    const counts = await api("GET", "/api/reports/counts" + query);
     $("count-open").textContent = counts.open;
     $("count-rejected").textContent = counts.rejected;
     $("count-resolved").textContent = counts.resolved;
+    $("count-overdue").textContent = counts.overdue;
   }
 }
 
@@ -126,6 +134,8 @@ async function openDetail(id) {
   $("detail-status").textContent = detail.request.status;
   $("detail-category").textContent = detail.request.category;
   $("detail-description").textContent = detail.description;
+  $("detail-deadline").textContent = `Due: ${new Date(detail.request.dueAt).toLocaleString()}` +
+    (detail.request.isOverdue ? " — Overdue" : "");
   $("staff-actions").hidden = currentUser.role !== "Staff";
 
   const items = detail.history.map((entry) => {

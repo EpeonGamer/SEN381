@@ -44,7 +44,8 @@
     <section id="counts-view" hidden>
       <h2>Service activity</h2>
       <p>Open: <strong id="count-open">0</strong> · Rejected: <strong id="count-rejected">0</strong> ·
-         Resolved: <strong id="count-resolved">0</strong></p>
+         Resolved: <strong id="count-resolved">0</strong> · Overdue (included in Open): <strong id="count-overdue">0</strong></p>
+      <p class="hint">Open requests become overdue after more than 3 days (72 hours) from submission.</p>
     </section>
 
     <!-- Everyone: the requests they are allowed to see (FR-004, FR-005, FR-006) -->
@@ -56,8 +57,15 @@
           <option>Unassigned</option><option>Assigned</option><option>Rejected</option><option>Resolved</option>
         </select>
       </label>
+      <label>Deadline filter
+        <select id="overdue-filter">
+          <option value="">All deadlines</option>
+          <option value="true">Overdue only</option>
+          <option value="false">Not overdue</option>
+        </select>
+      </label>
       <table>
-        <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Assignee</th><th>Submitted</th><th></th></tr></thead>
+        <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Assignee</th><th>Submitted</th><th>Due</th><th></th></tr></thead>
         <tbody id="request-rows"></tbody>
       </table>
       <p id="empty-list" hidden>No requests to show.</p>
@@ -68,6 +76,7 @@
       <h2 id="detail-title"></h2>
       <p>Status: <strong id="detail-status"></strong> · Category: <span id="detail-category"></span></p>
       <p id="detail-description"></p>
+      <p id="detail-deadline"></p>
       <div id="staff-actions" hidden>
         <button type="button" data-action="assign">Assign to me</button>
         <button type="button" data-action="reject">Reject…</button>

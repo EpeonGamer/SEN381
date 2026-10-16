@@ -1,5 +1,29 @@
 # Test Evidence (M3)
 
+## Overdue follow-up (2026-10-16, working tree)
+
+CR-M3-02 implements the user-selected three-day overdue rule. Baseline before edits: 72/72 passed.
+After implementation: **85/85 passed** (Core 65, API 20), including all original cases and 13 new cases.
+Release build with `dotnet build CivicConnect.sln -c Release --no-restore -warnaserror`: zero warnings/errors.
+Full regression command: `dotnet test CivicConnect.sln --no-restore --logger "console;verbosity=minimal"`.
+
+| Test basis | Cases | Expected / observed result | Interpretation |
+|---|---:|---|---|
+| `OverdueTests.Three_day_boundary_matches_policy_sql_counts_and_filters` | 8 | Both open states: -1/0 ticks not overdue, +1 tick overdue; terminal states excluded. Policy, SQL counts and true/false filters agree. All passed. | Strict elapsed-time boundary, including SQL precision. |
+| `Derived_overdue_works_for_existing_rows_and_preserves_scope_filters_and_pagination` | 1 | Existing rows become overdue without writes; scope/category/status filters and pagination retained; reports remain Manager-only. Passed. | Backwards-compatible persistence and scoped reads. |
+| `Assignment_keeps_original_deadline_and_terminal_transitions_clear_overdue` | 1 | Assignment keeps the original deadline; resolution/rejection remove overdue; audit histories retained. Passed. | Lifecycle and reporting cooperate. |
+| `Deadline_uses_elapsed_time_across_offsets_and_future_submissions_are_not_overdue` | 1 | Offset changes do not change elapsed duration; future submission excluded. Passed. | Timezone-safe policy. |
+| `OverdueApiTests.Overdue_journey_preserves_privacy_counts_filters_and_lifecycle` | 1 | Real login/submission/detail/list/counts/assignment/resolution through HTTP and SQLite; deadline flags/counts and access rules correct. Passed. | Integrated journey. |
+| `Overdue_count_is_not_limited_to_the_first_page_and_invalid_filter_is_rejected` | 1 | One-row page with three total overdue requests; invalid boolean filter returns 400. Passed. | Count independence and HTTP input validation. |
+
+The earlier 72-case run and coverage figures below are historical evidence, not new coverage measurements.
+
+Manual browser smoke check used a separate local SQLite file on port 5088: requester login/submission,
+deadline display and overdue label after backdating that isolated row, overdue/not-overdue filtering,
+request detail, logout/Manager login and matching filtered Manager counts. The development database was
+not touched. Assignment/reassignment/comments and terminal transitions are also exercised by the new
+SQLite overdue journey. No new load or cross-browser claim is made.
+
 **Run:** `dotnet test CivicConnect.sln -c Release` at commit `c5778f9`, 2026-10-16. **72 test cases, 72 passed, 0 failed**
 (Core.Tests 54, Api.Tests 18). CI runs the same command on every push and PR (`.github/workflows/ci.yml`) and
 uploads TRX results and coverage as the `test-results` artifact.

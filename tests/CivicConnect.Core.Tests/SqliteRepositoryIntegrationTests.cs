@@ -27,16 +27,16 @@ public sealed class SqliteTestDatabase : IDisposable
     public RequestService Requests { get; }
     public TransitionService Transitions { get; }
 
-    private SqliteTestDatabase()
+    private SqliteTestDatabase(TimeProvider? clock = null)
     {
-        Repository = new SqliteRequestRepository(ConnectionString);
-        Requests = new RequestService(Repository);
-        Transitions = new TransitionService(Repository);
+        Repository = new SqliteRequestRepository(ConnectionString, clock);
+        Requests = new RequestService(Repository, clock: clock);
+        Transitions = new TransitionService(Repository, clock: clock);
     }
 
-    public static async Task<SqliteTestDatabase> CreateAsync()
+    public static async Task<SqliteTestDatabase> CreateAsync(TimeProvider? clock = null)
     {
-        var db = new SqliteTestDatabase();
+        var db = new SqliteTestDatabase(clock);
         var cs = db.ConnectionString;
         await SqliteSchema.EnsureCreatedAsync(cs);
         await SqliteSetup.AddCategoryAsync(cs, "Roads");
