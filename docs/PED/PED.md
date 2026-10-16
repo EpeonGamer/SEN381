@@ -65,7 +65,7 @@
 | 0.5.0 | 2026/09/09 | Reconciled repository PED.md (which had reverted to uncorrected content) against this corrected/consolidated version; added dedicated Project Constraints subsection (§1.6.5) with cost/quality/security trade-off; finalised Team Working Agreement roles and communication plan | Kasper | Aidan, Lethebe |
 | 1.0.0 | 2026/09/09 | Formal Milestone 1 Baseline Submission | Team | Aidan, Lethebe |
 | 2.0.0 | 2026/09/30 | M2 controlled update: ADR-04 lifecycle decision, ADR-05 authorization/visibility decision, ADR-06 technology-stack decision, data/persistence baseline, affected RTM evidence, initial Core implementation and 29 passing tests | Team | Aidan, Lethebe |
-| 3.0.0 | 2026/10/16 | M3 controlled update: CR-M2-01 wording applied to FR table (DEF-02); RTM M3 verification trace (§1.5.4, from Member One's M3 review); M3 risks; M3 gate (§1.11); M3 implementation evidence (§1.13); staging (§1.14); M3 evidence index (§1.16) incl. Member One's baseline-conformance, defect, metric and debt analysis | Team (AI-assisted, AI-M3-02) | Pending PR review |
+| 3.0.0 | 2026/10/16 | M3 controlled update: CR-M2-01 wording applied to FR table (DEF-02); RTM M3 verification trace (§1.5.4, from Member One's M3 review); M3 risks; M3 gate (§1.11); M3 implementation evidence (§1.13); staging (§1.14); M3 evidence index (§1.16) incl. Member One's baseline-conformance, defect, metric and debt analysis | Team (AI-assisted, AI-M3-02) | Aidan, Lethebe |
 
 ---
 
@@ -739,12 +739,12 @@ repository or CI rather than repeating it.
 |---|---|
 | Team members | Kasper van Niekerk (602622), Aidan Lakmeeharan (602899), Lethebe Kutloano (601712) |
 | Repository | https://github.com/EpeonGamer/SEN381 |
-| M3 release candidate | Version `0.3.0`; **tag/commit to be recorded after the PR into `main` is approved and merged** (proposed tag `m3-rc1`) |
+| M3 release candidate | Git tag **`m3-rc1`** on `main` (version `0.3.0`). The tag identifies the assessed commit; its hash is given in the formal submission and is reported by `/health` on the deployed build |
 | PED version | v3.0 |
 | RTM | §1.5.4 (M3 trace) continuing §1.5.3 |
 | CI / test evidence | GitHub Actions workflow *CI* (`.github/workflows/ci.yml`; `test-results` artifact); [Test Evidence](../quality/TEST_EVIDENCE.md) |
 | Staging | Simulated staging, demonstrated live: [docs/deployment/STAGING.md](../deployment/STAGING.md) |
-| Date submitted | *(fill in on submission)* |
+| Date submitted | 2026-10-16 |
 
 ### 1.16.1. M3 overview
 
