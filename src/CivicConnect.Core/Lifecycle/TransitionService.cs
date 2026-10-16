@@ -28,16 +28,25 @@ public sealed class TransitionService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        // Authorization is owned by ADR-05, not by the lifecycle service.
-        if (string.IsNullOrWhiteSpace(request.Actor.Id) ||
-            !_visibilityPolicy.GetScope(request.Actor).Allows(AuthorizationAction.ChangeStatus))
+        // Authorization is owned by ADR-05.
+        if (request.Actor is null || string.IsNullOrWhiteSpace(request.Actor.Id))
             return TransitionResult.Fail(TransitionFailure.NotAuthorised);
 
-        var current = await _repository.GetStatusAsync(request.RequestId, cancellationToken);
+        var actor = await _repository.GetActorAsync(request.Actor.Id, cancellationToken);
+        if (actor is null)
+            return TransitionResult.Fail(TransitionFailure.NotAuthorised);
+        var scope = _visibilityPolicy.GetScope(actor);
+        if (!scope.Allows(AuthorizationAction.ChangeStatus))
+            return TransitionResult.Fail(TransitionFailure.NotAuthorised);
+
+        var current = await _repository.GetAsync(request.RequestId, cancellationToken);
         if (current is null)
             return TransitionResult.Fail(TransitionFailure.RequestNotFound);
 
-        if (!TransitionRules.TryGetRequirement(current.Value, request.To, out var required))
+        if (!scope.CanView(new RequestAccess(current.Id, current.RequesterId, current.Category)))
+            return TransitionResult.Fail(TransitionFailure.NotAuthorised);
+
+        if (!TransitionRules.TryGetRequirement(current.Status, request.To, out var required))
             return TransitionResult.Fail(TransitionFailure.InvalidTransition);
 
         if (required.HasFlag(TransitionRequirement.Assignee) && string.IsNullOrWhiteSpace(request.AssigneeId))
@@ -47,9 +56,20 @@ public sealed class TransitionService
         if (required.HasFlag(TransitionRequirement.ResolutionNote) && string.IsNullOrWhiteSpace(request.ResolutionNote))
             return TransitionResult.Fail(TransitionFailure.MissingResolutionNote);
 
+        if (required.HasFlag(TransitionRequirement.Assignee))
+        {
+            var assignee = await _repository.GetActorAsync(request.AssigneeId!, cancellationToken);
+            if (assignee is null || !_visibilityPolicy.GetScope(assignee).Allows(AuthorizationAction.ChangeStatus) ||
+                !_visibilityPolicy.GetScope(assignee).CanView(new RequestAccess(current.Id, current.RequesterId, current.Category)))
+                return TransitionResult.Fail(TransitionFailure.InvalidAssignee);
+        }
+
         var record = new TransitionRecord(
-            request.RequestId, current.Value, request.To, request.Actor.Id, _clock.GetUtcNow(),
-            request.AssigneeId, request.Reason, request.ResolutionNote);
+            request.RequestId, current.Status, request.To, actor.Id, _clock.GetUtcNow(),
+            required.HasFlag(TransitionRequirement.Assignee) ? request.AssigneeId : null,
+            required.HasFlag(TransitionRequirement.Reason) ? request.Reason!.Trim() : null,
+            required.HasFlag(TransitionRequirement.ResolutionNote) ? request.ResolutionNote!.Trim() : null,
+            current.Version);
 
         // Storage failures propagate as exceptions; the repository has rolled back (status unchanged).
         var saved = await _repository.SaveTransitionAsync(record, cancellationToken);

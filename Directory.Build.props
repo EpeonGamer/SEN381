@@ -1,0 +1,7 @@
+<Project>
+  <!-- Static analysis for every project: the .NET analyzers' "recommended" rule set.
+       CI builds with -warnaserror, so any analyzer or compiler warning fails the quality gate. -->
+  <PropertyGroup>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+  </PropertyGroup>
+</Project>

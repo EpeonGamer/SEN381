@@ -81,3 +81,25 @@
 * **Decision:** Accepted with modifications.
 * **Issues found & corrected:** Unfounded assumptions in the initial output were removed or revised during team review.
 
+
+### AI-M3-01: SQLite repository, schema and integration tests
+
+* **Date:** 2026-10-15
+* **Student:** Kasper
+* **Tool Used:** Claude Sonnet 5.5
+* **Engineering Task:** Create the missing persistence layer (`src/CivicConnect.Data`) so the Core can be integration-tested against a real database.
+* **AI Contribution:** Drafted the SQLite schema, `SqliteRequestRepository` (all `IRequestRepository` members), `SqliteSetup` seeding helper, five integration tests and ADR-07.
+* **Verification Applied:** Kasper reviewed the schema and repository code himself, focusing on the SQL visibility filter, the single transaction per status change and the version check. When drafted, the AI could only compile-check against stubbed package APIs. On 2026-10-16 it was built and run with the real `Microsoft.Data.Sqlite` package and xUnit: 0 warnings, all 5 integration tests passing (40/40 suite). Since then the same code has passed CI, the API integration and E2E tests, the staging E2E run and a load test (88/88 suite).
+* **Decision:** Accepted with modifications.
+* **Issues Found & Corrected:** (1) `Microsoft.Data.Sqlite 8.0.10` pulled in a High-severity vulnerable native SQLite library. Upgraded to 8.0.32 (DEF-05, commit `950f885`). (2) Under 10 concurrent users, submissions queued behind SQLite's single writer (p95 818 ms). WAL journal mode added (DEF-09, `c5778f9`). (3) WAL side files were not git-ignored. Fixed in `d57997b`. (4) The repository was later extended with an injectable clock for overdue reporting (Lethebe, `5042b6d`). ADR-07 records the remaining SQLite-versus-PostgreSQL trade-off.
+
+### AI-M3-02: M3 recovery — API, frontend, tests, CI, staging and release evidence
+
+* **Date:** 2026-10-16
+* **Student:** Kasper (directed the work, approved the plan and its scope)
+* **Tool Used:** Claude Opus 5.5 (Claude Code, agentic coding assistant)
+* **Engineering Task:** Turn the Core + SQLite code into an integrated, verified M3 release candidate.
+* **AI Contribution:** Audited the repository against the M3 brief. Drafted `src/CivicConnect.Api` (endpoints, cookie authentication, PBKDF2 hashing, seeding, static frontend), `SqliteCredentialStore`/`SqliteReferenceData`, the completed `BlackBoxTests`, `tests/CivicConnect.Api.Tests` (API and E2E), the CI workflow, the staging scripts, the load-test tool, the WAL change, ADR-08, the defect/technical-debt/test/performance/staging/release documents and the PED v3.0 sections. It also merged Member One's M3 review into the PED.
+* **Verification Applied:** Every change ran through `dotnet build -warnaserror` and the full test suite (now 88/88). Mutation checks confirmed that the DEF-01 and DEF-08 regression tests fail when the fix is removed. E2E tests ran against the deployed staging build, and staging `/health` was checked against `git rev-parse HEAD`. Kasper then verified it independently. He ran the test suite locally and walked through the UI as requester, staff and manager, including the denial checks. He re-ran the load test (submit p95 316 ms, against the AI's 311 ms) and confirmed CI passed on the push and the pull request. The overdue feature (Lethebe, CR-M3-02) was reviewed and tested with a 19-check exploratory run. All three team members must still be able to explain the code (RISK-M3-03).
+* **Decision:** Accepted with modifications (Kasper). Final team sign-off is the two approvals on the M3 pull request.
+* **Issues Found & Corrected:** The CI analyzer gate rejected the AI's own load-test code (CA1305 locale-dependent parsing), which was then fixed. Exploratory testing found that the AI's API error handler returned 500 instead of 400 for malformed input in Development (DEF-10). A regression test was written first and failed, then the handler was fixed (`d57997b`). The AI's first presentation PDF was silently shrunk to about half size by a CSS multi-column print bug; this was found by rendering the pages and corrected. A failed shell edit briefly produced a misleading "build succeeded", and miscounted test and request numbers in drafts were corrected. Changes to the existing Core/Data code were limited to two lines (CA2208 parameter name in Core; WAL pragma in Data). DEF-08, DEF-09 and DEF-10 were found through testing rather than assumed.
