@@ -832,7 +832,11 @@ by `Staff_outside_request_category_cannot_change_status` and `DT1` rule R3, and 
 | Ownership tests at policy, database and HTTP level | Requesters cannot see others' requests through the API | Security against attacks outside the tested paths |
 | Line coverage 80–89% | Most code ran during the tests | That the results were checked. Branch coverage is ~55–60% |
 
-### 1.16.11 - Core implementations
+### 1.16.10. Release readiness
+**CONDITIONALLY READY, with every release condition met.** (1) CI passes and both checks are required on `main`; (2) CR-M3-02, the 72-hour overdue rule, is accepted, with its rationale and sources recorded; (3) PR #14 has two approvals and ADR-07/ADR-08 are accepted. The classification stays "conditionally" rather than "ready" because of accepted, non-blocking limitations: FR-006 search is not built, FR-010/FR-014 lack dedicated tests, staging runs without HTTPS, and SQLite limits write concurrency. Residual risks RISK-M3-01 to RISK-M3-05 are in §1.10.
+Full gate table: [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md).
+
+### 1.16.11. Implementation reference (classes and members)
 #### Core — Authorization (`src/CivicConnect.Core/Authorization`)
 
 | Type | Purpose | Members and what they do |
@@ -882,7 +886,7 @@ by `Staff_outside_request_category_cannot_change_status` and `DT1` rule R3, and 
 | `ListAsync` | Supplies a default query, validates it, obtains scope and delegates to repository filtering. |
 | `GetHistoryAsync` / `GetCommentsAsync` | First verifies that the actor can read the request; otherwise throws `UnauthorizedAccessException`; then retrieves related records. |
 | `AddCommentAsync` | Reloads actor; requires ChangeStatus permission and request visibility; rejects whitespace-only content; trims text and stores author/server time. |
-| `ReassignAsync` | Requires permitted Staff and a visible Assigned request; validates the replacement Staff member's scope; rejects the same assignee; delegates version-checked reassignment and returns success/conflict. No reassignment HTTP route is mapped in this ZIP. |
+| `ReassignAsync` | Requires permitted Staff and a visible Assigned request; validates the replacement Staff member's scope; rejects the same assignee; delegates version-checked reassignment and returns success/conflict. No reassignment HTTP route is mapped in this release. |
 | `GetCountsAsync` | Reloads actor and requires Manager role plus ViewRequest; validates the query and requests scoped totals. |
 | Private `GetActorAsync` | Rejects null/blank actor IDs and retrieves the stored identity. |
 | Private `GetScopeAsync` | Rejects unknown actors or missing ViewRequest permission and returns trusted scope. |
@@ -981,7 +985,7 @@ Every test method in the eight suite classes is catalogued in Section 5. Their s
 | Load tool `Program` (`tools/CivicConnect.LoadTest/Program.cs`) | Top-level code reads URL/user-count/duration arguments and staging password, logs in one client per virtual user, runs submit→list loops concurrently and prints per-operation latency/error/throughput metrics. Local `Measure` records elapsed time, HTTP success/status or `HttpRequestException`; local `Percentile` selects a percentile from sorted timings. Returns 1 when any measured sample failed, otherwise 0. |
 | Load tool `Sample` record | `Operation`, `Milliseconds`, `Succeeded`, `Status` describe one measured response/failure. |
 
-## 1.16.10 Overdue rule and implementation context
+### 1.16.12. Overdue rule and implementation context
 
 **Rule:** A request is overdue only when **Unassigned or Assigned** and **current time is strictly after submission + 72 hours**. The window is a team assumption benchmarked against published municipal targets, not a stakeholder-approved SLA; category-specific targets remain deferred.
 
@@ -1010,36 +1014,7 @@ Every test method in the eight suite classes is catalogued in Section 5. Their s
 
 **UI limit:** Values refresh on reload, filter changes or actions; they do not continuously tick.
 
-##
-## 1.16.10 Overdue rule and implementation context
-
-**Rule:** A request is overdue only when **Unassigned or Assigned** and **current time is strictly after submission + 72 hours**. The window is a team assumption benchmarked against published municipal targets, not a stakeholder-approved SLA; category-specific targets remain deferred.
-
-| Situation | Result |
-| --- | --- |
-| One tick before / exactly at 72 hours | Not overdue |
-| One tick after 72 hours | Overdue if Unassigned/Assigned |
-| Rejected / Resolved | Excluded from overdue |
-| Assignment, reassignment or comments | Original deadline unchanged |
-| Open totals | Include overdue requests; overdue is a subset of Open |
-| Weekends / time-zone offsets | Elapsed time applies, including weekends; equivalent instants have equivalent deadlines |
-
-*A .NET tick is 100 nanoseconds.*
-
-| Component changed | Presentation explanation |
-| --- | --- |
-| **`OverduePolicy` — new** | Central rule: `ResolutionWindow` = three days; `DueAt` = submission + window; `Cutoff` = now − window; `IsOverdue` checks open status and strict boundary. |
-| `RequestQuery`, `ActivityCounts` | Nullable `Overdue` filter: `true` = overdue only, `false` = exclude overdue, omitted = no deadline restriction. Counts gain an Overdue total. |
-| `SqliteRequestRepository` | Injected clock; SQL combines overdue with authorization/category/status filters **before pagination**. Counts cover all matching rows, independent of list pagination, using one evaluation time for their calculation. |
-| `RequestSummary`, `ActivityCountsView` | Responses expose `DueAt`, `IsOverdue` and overdue totals. |
-| `RequestEndpoints`, `ReportEndpoints` | Submission/list/detail expose deadlines; list/report accept overdue filtering. Reports remain Manager-only. |
-| `Program` | Registers `TimeProvider.System`; supplies existing clock parameters to repository/services. `RequestService` and `TransitionService` implementations were not rewritten. |
-| `index.html`, `app.js` | Manager count, rule explanation, deadline filter, Due column/detail and overdue labels. List and counts use the selected filters. |
-
-**Speaker cue:** “Overdue is calculated when data is read. The interface displays the server’s result; backend authorization remains authoritative.”
-
-**UI limit:** Values refresh on reload, filter changes or actions; they do not continuously tick.
-## 1.16.12 Critical requirements — concise traceability
+### 1.16.13. Critical requirements — concise traceability
 
 | Requirement | Acceptance criterion | Implementation | Tests / evidence | Expected and observed result | Status / limitation |
 | --- | --- | --- | --- | --- | --- |
@@ -1048,12 +1023,12 @@ Every test method in the eight suite classes is catalogued in Section 5. Their s
 | **FR-007** rejection feedback | Meaningful reason required and visible to requester. | `TransitionRequirement.Reason`, service, stored history/UI. | Blank-reason/audit tests; API7; E2E2. | Blank refused without saving; valid reason trimmed, saved and displayed. Passed. | In-app feedback verified; external delivery not established. |
 | **FR-009/011/015** lifecycle | Only approved transitions; eligible assignee; resolution note. | Rules/service, transactional repository, self-assignment UI. | 16-pair lifecycle table; ST1; E2E1. | Exactly 3/16 pairs allowed; invalid transitions do not save. Passed. | DEF-02 closed; other-assignee selection and reassignment route/UI incomplete. |
 | **NFR-004** atomicity/conflicts | Status/audit commit together; stale update cannot overwrite. | `SaveTransitionAsync` transaction and version predicate. | Audit-write fault injection; stale replay. | Failure leaves Unassigned/version 0/empty history; replay changes nothing. Passed. | SQLite verified; parallel-writer and disaster recovery not established. |
-| **FR-012/013/014** reports/overdue | Scoped counts; strict 72-hour rule; compatible filters. | Policy → SQL → API → UI. | 11 Core/SQLite + 2 API overdue cases; API8; API10 malformed-query regression; 19 exploratory checks. | Boundary agreement; stable deadlines; terminal exclusions; unpaginated totals; invalid boolean → 400, including Development after DEF-10. Reported passed. | FR-013 locally verified; DEF-07 review pending; broader filter/UI coverage incomplete. |
+| **FR-012/013/014** reports/overdue | Scoped counts; strict 72-hour rule; compatible filters. | Policy → SQL → API → UI. | 11 Core/SQLite + 2 API overdue cases; API8; API10 malformed-query regression; 19 exploratory checks. | Boundary agreement; stable deadlines; terminal exclusions; unpaginated totals; invalid boolean → 400, including Development after DEF-10. Reported passed. | FR-013 verified; DEF-07 closed (CR-M3-02 accepted); broader filter/UI coverage incomplete. |
 | **FR-010** comments/actions | Audited transitions; stored authored comments; blank comments refused. | Comment service/endpoint, history/comments tables. | Audit/rollback tests; valid comment round trip. | Audit and valid-comment checks passed. | Partial: blank/unauthorized comments, all fields and comment UI need further evidence. |
 
-## 1.16.13. Core verification and integrated-system evidence
+### 1.16.14. Core verification and integrated-system evidence
 
-**Overdue evidence in the ZIP: two test classes, six methods, 13 cases.** Core unit/component testing is my allocated focus; Data/API/E2E coverage is wider team evidence. No authorship of those suites is implied.
+**Overdue evidence in this release: two test classes, six methods, 13 cases.** Core unit/component testing was Lethebe's allocated focus; Data/API/E2E coverage is wider team evidence.
 
 | Test method | Cases | What it establishes |
 | --- | --- | --- |
@@ -1070,14 +1045,14 @@ Every test method in the eight suite classes is catalogued in Section 5. Their s
 
 **Reported final result:** **88/88 passed** — 65 Core-project and 23 API-project cases. Progression: 72 baseline → 85 after overdue work → 88 after DEF-10. `API10_Malformed_query_values_get_400_not_500` adds three cases: `limit=abc` in Testing and Development, and `overdue=maybe` in Development. The regression failed before the fix and passed after it. The strict Release build is reported with **zero warnings/errors**. The suite now contains 46 test methods; case count alone is not proof of quality.
 
-**Exploratory evidence:** **19/19 checks passed** on an isolated Staging-configured instance of `5042b6d`, including a live deadline crossing, privacy, category scope, Manager counts, assignment and terminal transitions. This was a one-off script, not an automated browser suite. Earlier E2E1/E2E2 staging evidence is for `c5778f9`, not the supplied main commit.
+**Exploratory evidence:** **19/19 checks passed** on an isolated Staging-configured instance of `5042b6d`, including a live deadline crossing, privacy, category scope, Manager counts, assignment and terminal transitions. This was a one-off script, not an automated browser suite. Earlier E2E1/E2E2 staging runs were on `c5778f9` and `7344b2a`; they are re-run on `m3-rc2` for the demonstration.
 
 
-### Complete automated-test inventory
+#### Complete automated-test inventory
 
-The catalogue covers **all 46 test methods / 88 expanded cases** present in the ZIP. A theory is one method but runs once for each data row; `LifecycleTests.AllPairs` generates 16 rows. Section 8 explains how to run a whole suite or any individual method named here. For each row, the runner creates the fixture, performs the action, checks the expected outcome and cleans up.
+The catalogue covers **all 46 test methods / 88 expanded cases** present in this release. A theory is one method but runs once for each data row; `LifecycleTests.AllPairs` generates 16 rows. Run a whole suite with `dotnet test CivicConnect.sln`, or one method with `dotnet test --filter "FullyQualifiedName~<MethodName>"`. For each row, the runner creates the fixture, performs the action, checks the expected outcome and cleans up.
 
-#### `AuthorizationTests` — 4 methods, 4 cases
+##### `AuthorizationTests` — 4 methods, 4 cases
 
 Source: `tests/CivicConnect.Core.Tests/AuthorizationTests.cs`.
 
@@ -1088,7 +1063,7 @@ Source: `tests/CivicConnect.Core.Tests/AuthorizationTests.cs`.
 | `Manager_can_view_requests_but_cannot_change_status_through_this_policy` | Build Manager scope; arbitrary request visible, ChangeStatus denied. |
 | `Staff_can_change_status_when_authorized_by_the_policy` | Build Staff scope; ChangeStatus permitted. |
 
-#### `LifecycleTests` — 13 methods, 30 cases
+##### `LifecycleTests` — 13 methods, 30 cases
 
 Source: `tests/CivicConnect.Core.Tests/LifecycleTests.cs`.
 
@@ -1108,7 +1083,7 @@ Source: `tests/CivicConnect.Core.Tests/LifecycleTests.cs`.
 | `Null_actor_is_denied_without_saving` | Pass null actor; NotAuthorised and no save. |
 | `Rejection_audit_records_server_time_actor_and_only_relevant_information` | Reject at fixed time with padded reason and irrelevant fields; audit records server time/actor, trimmed reason, null assignee/note. |
 
-#### `BlackBoxTests` — 6 methods, 15 cases
+##### `BlackBoxTests` — 6 methods, 15 cases
 
 Source: `tests/CivicConnect.Core.Tests/BlackBoxTests.cs`.
 
@@ -1121,7 +1096,7 @@ Source: `tests/CivicConnect.Core.Tests/BlackBoxTests.cs`.
 | `DT1_Assignment_decision_table` | Try Requester, Manager, out-of-scope Staff and in-scope Staff; only the last assigns and changes stored status (4 cases). |
 | `ST1_Request_follows_approved_path_and_resolved_is_terminal` | Persist assign→resolve; reopen denied; requester sees Resolved and ordered history with Patched note. |
 
-#### `SqliteRepositoryIntegrationTests` — 5 methods, 5 cases
+##### `SqliteRepositoryIntegrationTests` — 5 methods, 5 cases
 
 Source: `tests/CivicConnect.Core.Tests/SqliteRepositoryIntegrationTests.cs`.
 
@@ -1133,7 +1108,7 @@ Source: `tests/CivicConnect.Core.Tests/SqliteRepositoryIntegrationTests.cs`.
 | `Failed_audit_write_rolls_back_the_status_change` | Install an aborting audit-insert trigger, then assign; SqliteException, original status/version 0 and empty history remain. |
 | `Stale_transition_is_reported_as_conflict_and_changes_nothing` | Save the same version-0 transition twice; first true, replay false, stored Assigned/version 1 and one history entry. |
 
-#### `OverdueTests` — 4 methods, 11 cases
+##### `OverdueTests` — 4 methods, 11 cases
 
 Source: `tests/CivicConnect.Core.Tests/OverdueTests.cs`.
 
@@ -1144,7 +1119,7 @@ Source: `tests/CivicConnect.Core.Tests/OverdueTests.cs`.
 | `Assignment_keeps_original_deadline_and_terminal_transitions_clear_overdue` | Advance to day 4; assign, reassign, comment, resolve/reject; original deadline preserved and final overdue count zero with histories retained. |
 | `Deadline_uses_elapsed_time_across_offsets_and_future_submissions_are_not_overdue` | Use offset-equivalent submission; exactly 72 h false, +1 tick true, future submission false. |
 
-#### `ApiIntegrationTests` — 10 methods, 19 cases
+##### `ApiIntegrationTests` — 10 methods, 19 cases
 
 Source: `tests/CivicConnect.Api.Tests/ApiIntegrationTests.cs`.
 
@@ -1161,7 +1136,7 @@ Source: `tests/CivicConnect.Api.Tests/ApiIntegrationTests.cs`.
 | `API10_Malformed_query_values_get_400_not_500` | Bad limit in Testing/Development and bad overdue in Development; all 400 (3 cases, DEF-10 regression). |
 | `API9_Health_reports_status_and_release_version` | Call anonymous health; 200, Healthy, version starts 0.3.0. |
 
-#### `EndToEndTests` — 2 methods, 2 cases
+##### `EndToEndTests` — 2 methods, 2 cases
 
 Source: `tests/CivicConnect.Api.Tests/EndToEndTests.cs`.
 
@@ -1170,7 +1145,7 @@ Source: `tests/CivicConnect.Api.Tests/EndToEndTests.cs`.
 | `E2E1_Request_is_submitted_assigned_resolved_and_the_requester_sees_the_outcome` | Requester submits Roads; Staff assigns/resolves; requester finds it under Resolved and sees assignee, ordered history and Pothole filled note. |
 | `E2E2_Rejected_request_shows_the_requester_the_reason` | Requester submits Water; utilities Staff rejects; requester sees Rejected and the exact maintenance reason. |
 
-#### `OverdueApiTests` — 2 methods, 2 cases
+##### `OverdueApiTests` — 2 methods, 2 cases
 
 Source: `tests/CivicConnect.Api.Tests/OverdueApiTests.cs`.
 
@@ -1179,23 +1154,23 @@ Source: `tests/CivicConnect.Api.Tests/OverdueApiTests.cs`.
 | `Overdue_journey_preserves_privacy_counts_filters_and_lifecycle` | Submit, advance to 72 h and +1 tick, re-login; verify deadline/flag, privacy, category scope, 401/403/404, filtered Manager totals, assignment then resolution. |
 | `Overdue_count_is_not_limited_to_the_first_page_and_invalid_filter_is_rejected` | Submit three, advance four days and re-login; paginated list has one but report counts three; malformed overdue returns 400 on list/report. |
 
-## 6. Defects, security and remaining debt
+### 1.16.15. Defects, security and remaining debt
 
 | Record / finding | Handling / current position |
 | --- | --- |
 | **DEF-01, DEF-02** | Closed: resource authorization fixed; lifecycle wording aligned with CR-M2-01 and transition tests. |
 | **DEF-04–06, DEF-08** | Closed: duplicate ADR removed; vulnerable dependencies upgraded at `950f885`; D1 assertions added; category spelling normalized. |
-| **DEF-07** | **Implemented / review pending** in the current Defect Register. CR-M3-02 records the rationale and team assumption; formal approval remains outstanding. |
+| **DEF-07** | **Closed**: CR-M3-02 accepted by the team (PR #14), with the 72-hour rationale and sources recorded. |
 | **DEF-03, DEF-09** | DEF-03 **Open**: original M2 RTM column mismatch; corrected M3 trace retained separately. DEF-09 **Mitigated / open**: WAL at `c5778f9` improves submission latency but does not remove serialized writes. |
 | **DEF-10** | **Closed**: malformed queries returned 500 in Development. `Program.cs` now preserves `BadHttpRequestException.StatusCode` and returns `InvalidInput`; API10 provides three red-then-green regression cases. |
-| Static suppressions | CA2208, CA1050 and CA1305 fixed. `CA1707`, `CA1848`, `CA1873` suppressed with written test-naming/logging reasons. Release evidence reports CI build/test, dependency and Gitleaks gates passed on push and PR; branch-protection enforcement still needs confirmation. |
+| Static suppressions | CA2208, CA1050 and CA1305 fixed. `CA1707`, `CA1848`, `CA1873` suppressed with written test-naming/logging reasons. Release evidence reports CI build/test, dependency and Gitleaks gates passed on push and PR; both checks are required on `main` (branch protection confirmed). |
 | Authentication/transport | PBKDF2, HttpOnly/SameSite cookies and rate limiting implemented; shared demo credentials, missing account lifecycle/MFA and HTTP staging remain limitations. |
 
 **Existing technical debt:** TD-01 seeded accounts/admin UI; TD-02 string category permissions; TD-03 broad Manager scope; TD-04 expanding lifecycle complexity; TD-05 SQLite limits; TD-06 credentials/password lifecycle/MFA; TD-07 TLS; TD-08 schema migrations; **TD-09 missing automated browser UI tests**. The global derived deadline is a CR-M3-02 limitation, not a numbered debt entry.
 
-**Follow-up priorities:** individual account management, verified TLS/secure-cookie behaviour, migration/restoration tests, realistic concurrency/load testing and completion of deferred UI/negative-test coverage. Revisit narrower Manager scope, category identifiers, state design and persisted deadlines when requirements expand. **Release remains CONDITIONALLY READY**: confirm both CI checks are required on `main`, approve CR-M3-02, record two non-author PR approvals and accept ADR-07/08. Production use also requires the account-security and TLS gaps to be addressed.
+**Follow-up priorities:** individual account management, verified TLS/secure-cookie behaviour, migration/restoration tests, realistic concurrency/load testing and completion of deferred UI/negative-test coverage. Revisit narrower Manager scope, category identifiers, state design and persisted deadlines when requirements expand. **Release remains CONDITIONALLY READY**, with all three release conditions met (§1.16.10). Production use also requires the account-security and TLS gaps to be addressed.
 
-## 7. Metrics and documentation — what I can claim
+### 1.16.16. Metrics and documentation
 
 - **Historical coverage:** API run line/branch: API **89/59%**, Core **82/54%**, Data **85/88%**. Core run: Core **80/58%**, Data **67/67%**. Separate reports; not additive or refreshed after overdue work.
 
@@ -1205,15 +1180,9 @@ Source: `tests/CivicConnect.Api.Tests/OverdueApiTests.cs`.
 
 | Documentation in updated main | Evidence added |
 | --- | --- |
-| `CR-M3-02_Overdue_Request_Rule.md` | Rule, acceptance boundary, API/UI contract, implementation and limitations; now also records Lethebe’s proposal, municipal benchmarks, alternatives and team approval pending. |
-| `PED.md` | FR-013 traceability, risk and conditional readiness; §1.16.0 names `m3-rc1` on `main`. Some later sections retain older branch/test totals; use the latest quality records for results. |
-| `DEFECT_REGISTER.md` | DEF-07 implemented/review pending; DEF-09 mitigated/open; DEF-10 closed with malformed-query regression evidence. |
+| `CR-M3-02_Overdue_Request_Rule.md` | Rule, acceptance boundary, API/UI contract, implementation and limitations; now also records Lethebe’s proposal, municipal benchmarks, alternatives and team acceptance (PR #14). |
+| `PED.md` | FR-013 traceability, risk and conditional readiness; §1.16.0 names `m3-rc2` on `main`. Earlier sections quote 72 or 85 cases as historical stages; 88 is the current total. |
+| `DEFECT_REGISTER.md` | DEF-07 closed; DEF-09 mitigated/open; DEF-10 closed with malformed-query regression evidence. |
 | `TEST_EVIDENCE.md` | 72 baseline + 13 overdue + 3 DEF-10 cases = **88**; **19/19 exploratory checks** plus isolated browser smoke evidence. Historical coverage/load figures remain labelled. |
 
-**Documentation boundary:** The committed Technical Debt Register contains **TD-01–TD-09 only**; TD-10–TD-13 are not present. `RELEASE_EVIDENCE_SUMMARY.md` supplies the current conditional decision and 88-case result. Older PED/CR-M3-02/DEF-07 passages still cite 72 or 85 cases; these are historical stages. Statements that comments/reassignment are wholly untested are also stale: the overdue SQLite journey checks their successful path, while dedicated negative/UI coverage remains incomplete.
-
-
-
-### 1.16.13. Release readiness
-**CONDITIONALLY READY, with every release condition met.** (1) CI passes and both checks are required on `main`; (2) CR-M3-02, the 72-hour overdue rule, is accepted, with its rationale and sources recorded; (3) PR #14 has two approvals and ADR-07/ADR-08 are accepted. The classification stays "conditionally" rather than "ready" because of accepted, non-blocking limitations: FR-006 search is not built, FR-010/FR-014 lack dedicated tests, staging runs without HTTPS, and SQLite limits write concurrency. Residual risks RISK-M3-01 to RISK-M3-05 are in §1.10.
-Full gate table: [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md).
+**Documentation boundary:** `RELEASE_EVIDENCE_SUMMARY.md` supplies the current conditional decision and 88-case result. Older PED/CR-M3-02/DEF-07 passages still cite 72 or 85 cases; these are historical stages. Statements that comments/reassignment are wholly untested are also stale: the overdue SQLite journey checks their successful path, while dedicated negative/UI coverage remains incomplete.
