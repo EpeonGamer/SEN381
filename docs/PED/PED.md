@@ -528,14 +528,14 @@ Based on Master Project Brief Appendix D.
 The architectural decisions driving the technogoly used for CivicConnect are driven by the shareholders of the project, as well as the development team's capabilities. The requirements for the project that have been determined to be significant include Security, Accessibility, Performance, Integration of systems, Data integrity and Maintainability. Users of CivicConnect will need access to the technology used, whilst keeping data secure. The performance of the project will also need to be adequate for users to have a seemless experience. Meanwhile, the developers and management will want to ensure data is secure and the correct data is being utilized in CivicConnect. Developers will also want an easily maintainable system to both add features in the future as well as fix any defects that arise in the short-term. The developers will therefore also want a system with functional integrations, with adequate cohesion and coupling of systems for maximum functionality of CivicConnect. With this in mind, the following Technology stack has been determined to be ideal for CivicConnect:
 
 
-C# Programing, ASP.NET Core, PostgreSQL Database System, with npgSQL integration\
-The reason for this is the developers have experience in dealing with these systems, thereby fulfilling maintainability requirements. npgSQL also allows PostgreSQL integration with C# and .NET frameworks. Additionally C# will allow efficient programming for better performance, while providing adequate security measures that are built in to C#. Lastly, because everything is open-source and free, it is both accessible to the users and to the developers and meets the shareholder's requirements for costs.
+C# Programing, ASP.NET Core, and SQLite Distributed Database System, JSON scripts and C# Web Application\
+The reason for this is the developers have experience in dealing with these systems, thereby fulfilling maintainability requirements. SQLite integration is effiective with C# and .NET frameworks, as well as providing flexibility with it's SQL language model. There is also the ability forr SQLite to integrate with other software languages thereby allowing for a more micro-service system that has substantial enough cohesion for the project. Additionally C# will allow efficient programming for better performance, while providing adequate security measures that are built in to C#. Lastly, because everything is open-source and free, it is both accessible to the users and to the developers and meets the shareholder's requirements for costs.
 
-The following stacks were also analyzed and elements of each stack can also be utilized for CivicConnect:
+The following stacks were also analyzed and elements of each stack can also be utilized for CivicConnect, however the stack as a whole was not seleceted:
 
-Python Programming, Django, with PostgreSQL/SQLite\
-Java, SpringBoot, with PostgreSQL, JUnit and Maven\
-Typescript, Node/Express, with PostgreSQL/Vitest/Jest, React/Server-rendered Pages
+Python Programming, Django, with PostgreSQL: This was decided not to be undertaken due to the lack of familiarity and potential complexities involved in Django and Python programming\
+Java, SpringBoot, with PostgreSQL, JUnit and Maven: This stack was declined due to the potential Monolithic behaviour of the stack, as well as performance drawbacks contained within Java.\
+Typescript, Node/Express, with PostgreSQL/Vitest/Jest, React/Server-rendered Pages: This stack was also not selected due to the complexities and potential integration problems that could arise with PostgreSQL and Node/Express.
 
 The stack will interact as per the following diagram:\
 ![StackDiagram](../architecture/diagrams/StackDiagram.png)

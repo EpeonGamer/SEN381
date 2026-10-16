@@ -10,17 +10,18 @@ CivicConnect requires technology stack for development. The stack needs to adher
 
 ## 2. Decision
 
-The stack of C#, ASP.NET, PostgreSQL and npgSQL.
+The stack of C#, ASP.NET, JSON and SQLite.
 
 ## 3. Alternatives considered
 
+C# programming with PostgreSQL.
 Python Programming, Django, with PostgreSQL/SQLite\
 Java, SpringBoot, with PostgreSQL, JUnit and Maven\
 Typescript, Node/Express, with PostgreSQL/Vitest/Jest, React/Server-rendered Pages
 
 ## 4. Rationale
 
-The reasoning behind the decisions is due to the familiarity of the software available, the languages and the integrations to the development team. Additionally security and maintainability are also adequately accounted for from these technologies.
+The reasoning behind the decisions is due to the familiarity of the software available, the languages and the integrations to the development team. Additionally security and maintainability are also adequately accounted for from these technologies. Additionally it allows for a better micro-service stack than C# integration with PostgreSQL would have.
 
 Furthermore, based off of research gathered from Assignment 2, the stack allows for an adequate cohesion and coupling balance, such that the system works effectively whilst maintaining a degree of flexibility should and alternative programming software prove to be necessary.
 
