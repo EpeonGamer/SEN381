@@ -76,7 +76,7 @@ Original wording is retained. It is not deleted from PED v1.0.0.
 ## 5. Artefacts to Update When Approved
 
 - [ ] PED v2.0 Change Control table: add version rows. Do not remove v1.0.0.
-- [ ] PED requirements tables: mark FR-015 and FR-013 as Changed, and FR-011, FR-007, FR-002 as Clarified.
+- [x] PED requirements tables: mark FR-015 and FR-013 as Changed, and FR-011, FR-007, FR-002 as Clarified. *(Done in PED v3.0, 2026-10-16 — closes DEF-02.)*
 - [ ] RTM: update status and verification columns for the affected rows.
 - [ ] Risk Register: add rows for requirements ambiguity (mitigated by this CR) and reporting granularity (section 6).
 - [ ] State-machine diagram: draw the section 3 model. This is the diagram input to the lifecycle design ADR.

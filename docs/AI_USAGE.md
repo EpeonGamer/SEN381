@@ -92,3 +92,14 @@
 * **Verification Applied:** TO BE COMPLETED BY KASPER after review and local run. Checks done by the AI: SQL schema, scoping query, version check and rollback behaviour were exercised against SQLite 3.45; C# was compile-checked against stubbed package APIs only (NuGet was unreachable), so it has NOT been run with the real package or xunit.
 * **Decision:** TO BE COMPLETED (accepted / accepted with modifications / rejected).
 * **Issues Found & Corrected:** TO BE COMPLETED after local build and test run.
+
+### AI-M3-02: M3 recovery — API, frontend, tests, CI, staging and release evidence
+
+* **Date:** 2026-10-16
+* **Student:** Kasper (directed the work, approved the plan and its scope)
+* **Tool Used:** Claude Opus 5.5 (Claude Code, agentic coding assistant)
+* **Engineering Task:** Turn the Core + SQLite code into an integrated, verified M3 release candidate.
+* **AI Contribution:** Audited the repository against the M3 brief. Drafted `src/CivicConnect.Api` (endpoints, cookie authentication, PBKDF2 hashing, seeding, static frontend), `SqliteCredentialStore`/`SqliteReferenceData`, the completed `BlackBoxTests`, `tests/CivicConnect.Api.Tests` (API and E2E), the CI workflow, the staging scripts, the load-test tool, the WAL change, ADR-08, the defect/technical-debt/test/performance/staging/release documents and the PED v3.0 sections. It also merged Member One's M3 review into the PED.
+* **Verification Applied:** Every change ran through `dotnet build -warnaserror` and the full test suite (72/72). Mutation checks confirmed that the DEF-01 and DEF-08 regression tests fail when the fix is removed. The API was smoke-tested manually and through the UI. E2E tests ran against the deployed staging build. Staging `/health` was checked against `git rev-parse HEAD`. The load test was run before and after the WAL fix. **Human review is still required:** each team member must review the PR, run the tests and be able to explain the code (RISK-M3-04).
+* **Decision:** Pending — accepted only after two team approvals on the PR.
+* **Issues Found & Corrected:** The new CI analyzer gate rejected the AI's own load-test code (CA1305 locale-dependent parsing), which was then fixed. A failed shell edit briefly produced a misleading "build succeeded"; this was caught and re-run. Miscounted test and request numbers in the drafts were corrected. Changes to the existing Core/Data code were limited to two lines (CA2208 parameter name in Core; WAL pragma in Data). Defects DEF-08 and DEF-09 were found through testing rather than assumed.
