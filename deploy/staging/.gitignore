@@ -1,0 +1,5 @@
+# Built releases, staging data and backups are environment state, not source.
+releases/
+data/
+backups/
+current.txt
