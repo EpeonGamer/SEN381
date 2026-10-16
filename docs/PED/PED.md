@@ -835,3 +835,354 @@ by `Staff_outside_request_category_cannot_change_status` and `DT1` rule R3, and 
 ### 1.16.10. Release readiness
 **CONDITIONALLY READY, with every release condition met.** (1) CI passes and both checks are required on `main`; (2) CR-M3-02, the 72-hour overdue rule, is accepted, with its rationale and sources recorded; (3) PR #14 has two approvals and ADR-07/ADR-08 are accepted. The classification stays "conditionally" rather than "ready" because of accepted, non-blocking limitations: FR-006 search is not built, FR-010/FR-014 lack dedicated tests, staging runs without HTTPS, and SQLite limits write concurrency. Residual risks RISK-M3-01 to RISK-M3-05 are in §1.10.
 Full gate table: [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md).
+
+### 1.16.11. Implementation reference (classes and members)
+#### Core — Authorization (`src/CivicConnect.Core/Authorization`)
+
+| Type | Purpose | Members and what they do |
+| --- | --- | --- |
+| `ActorContext` record | Carries the actor information used by Core authorization. | Constructor properties `Id`, `Role`, `Groups` carry identity, role and optional groups. `StaffGroups` returns `Groups`, or an empty collection when null. Services reload trusted actor data before making decisions. |
+| `ActorRole` enum | Defines the supported user roles. | `Requester` submits and reads owned requests; `Staff` works within permitted categories; `Manager` views all requests and reports under the current policy. |
+| `AuthorizationAction` enum | Names the operations the visibility policy controls. | `ViewRequest` permits reading; `ChangeStatus` permits lifecycle actions and is also checked for comments/reassignment. |
+| `StaffGroup` record | Represents a configured Staff permission group. | `Name` identifies the group; `RequestTypes` is the set of categories it grants. |
+| `RequestAccess` record | Supplies only the information needed to test visibility. | `RequestId` identifies the request; `RequesterId` enables ownership checks; `RequestType` enables category checks. |
+| `IVisibilityPolicy` interface | Defines the interchangeable authorization strategy. | `GetScope(actor)` returns a `VisibilityScope` describing visible data and permitted actions. |
+| `RoleVisibilityPolicy` class | Implements ADR-05's current role rules. | Private sets `RequesterActions`, `StaffActions`, `ManagerActions` define permissions. `GetScope` rejects null/unknown roles, gives Requesters ownership scope, combines Staff-group categories case-insensitively, and gives Managers all-request visibility without status-change permission. |
+| `VisibilityScope` class | Reuses one authorization result for individual checks and SQL list filtering. | Private constructor captures `_ownerId`, `_requestTypes`, `AllRequests`, `AllowedActions`. `OwnRequestsOnly` reports whether an owner restriction exists; `OwnerId` exposes that owner; `PermittedRequestTypes` exposes category permissions. Factory methods `OwnRequests`, `RequestTypes`, `All` create the three scopes. `Allows(action)` checks action membership; `CanView(request)` accepts all-request scope, matching owner, or a permitted category. |
+
+**Explanation cue:** `OwnerId => _ownerId` exposes the stored owner without a setter; `PermittedRequestTypes => _requestTypes` exposes the set through a read-only interface. These properties let the repository translate the same policy into SQL predicates.
+
+#### Core — Lifecycle (`src/CivicConnect.Core/Lifecycle`)
+
+| Type | Purpose | Members and what they do |
+| --- | --- | --- |
+| `RequestStatus` enum | Defines the four-state lifecycle. | `Unassigned=0` is initial; `Assigned=1` has Staff responsibility; `Rejected=2` and `Resolved=3` are terminal. Resolved also means closed. |
+| `TransitionRequirement` flags enum | Describes required transition information. | `None=0`, `Assignee=1`, `Reason=2`, `ResolutionNote=4`; flags allow requirement checks with `HasFlag`. |
+| `TransitionRules` static class | Owns the allowed-transition table. | Private `Allowed` maps Unassigned→Assigned to Assignee, Unassigned→Rejected to Reason, Assigned→Resolved to ResolutionNote. `TryGetRequirement(from,to,out requirement)` looks up a pair; `AllowedTransitions` exposes the keys for checks/documentation. |
+| `TransitionRequest` record | Carries a requested status change. | `RequestId`, `To`, `Actor` identify the target/action/caller; optional `AssigneeId`, `Reason`, `ResolutionNote` supply transition-specific data. |
+| `TransitionFailure` enum | Represents refused transition outcomes. | `None`, `NotAuthorised`, `RequestNotFound`, `InvalidTransition`, `MissingAssignee`, `MissingReason`, `MissingResolutionNote`, `ConcurrencyConflict`, `InvalidAssignee` distinguish the failure reason. |
+| `TransitionResult` record | Returns a service outcome without HTTP dependencies. | `Succeeded`, `Failure`, optional `NewStatus` describe the result. `Success(newStatus)` builds success; `Fail(failure)` builds refusal. |
+| `TransitionRecord` record | Carries the status update and audit data to persistence. | `RequestId`, `From`, `To`, `ActorId`, `At`, `AssigneeId`, `Reason`, `ResolutionNote` describe the change; `ExpectedVersion` guards against a stale save. |
+| `TransitionService` class | Provides the controlled status-change path. | Constructor requires a repository and optionally takes a visibility policy/clock; private `_repository`, `_visibilityPolicy`, `_clock` hold them. `ApplyAsync` reloads the actor; checks action, request visibility, allowed pair and mandatory fields; validates the assignee's scope; trims relevant text and records server time/version; calls atomic save; returns success or conflict. Storage exceptions propagate. |
+| `IRequestRepository` interface | Keeps Core independent of a database implementation. | `GetAsync` reads a request; `GetActorAsync` reloads role/groups; `CategoryExistsAsync` checks the catalogue; `CreateAsync` stores submission; `ListAsync` performs scoped querying; `GetHistoryAsync` and `GetCommentsAsync` read related records; `AddCommentAsync` writes a comment; `ReassignAsync` atomically changes responsibility with a version check; `GetCountsAsync` aggregates matching records; `SaveTransitionAsync` atomically saves state and audit, returning false on a stale version/status. |
+
+#### Core — Requests (`src/CivicConnect.Core/Requests`)
+
+| Type | Purpose | Members and what they do |
+| --- | --- | --- |
+| `ServiceRequest` record | Represents the persisted current request. | `Id`, `RequesterId`, `Category`, `Title`, `Description`, `Status`, `SubmittedAt`, `UpdatedAt`, optional `AssigneeId`, and `Version` store identity, ownership, content, lifecycle, times and optimistic version. |
+| `RequestComment` record | Represents one authored comment. | `RequestId`, `AuthorId`, `Content`, `At` associate text with its request, author and time. |
+| `RequestQuery` record | Carries filters, ordering and pagination. | Optional `Id`, `Category`, `Status`; `SortByCategory=false`; `Limit=50`, `Offset=0`; nullable `Overdue` selects overdue, excludes overdue, or applies no deadline restriction. |
+| `ActivityCounts` record | Returns aggregate totals. | `Open`, `Rejected`, `Resolved`, `Overdue`; overdue belongs within Open. |
+| `RequestFailure` enum | Represents non-transition service failures. | `None`, `NotAuthorised`, `InvalidInput`, `InvalidCategory`, `InvalidAssignee`, `InvalidState`, `ConcurrencyConflict`. |
+| `RequestResult` record | Returns submission/comment/reassignment outcomes. | `Succeeded`, `Failure`, optional `RequestId`; `Fail(failure)` creates failure, `Success(id)` creates success. |
+| `OverduePolicy` static class | Owns the shared read-time overdue rule. | `ResolutionWindow` returns three days. `DueAt(request)` adds the window to submission. `Cutoff(now)` subtracts it from now for SQL filtering. `IsOverdue(request,now)` requires an open status and strict `now > DueAt`. |
+| `RequestService` class | Coordinates submission, scoped reads, comments, reassignment and Manager totals. | Constructor stores `_repository`, `_policy`, `_clock`, defaulting policy/clock when omitted. The method breakdown follows. |
+
+| `RequestService` method | What it does |
+| --- | --- |
+| `SubmitAsync` | Reloads actor; permits Requesters only; rejects blank fields/unknown categories; trims input; creates an Unassigned request with server timestamps; persists and returns its ID. |
+| `GetAsync` | Obtains the caller's scope and queries by ID with limit 1; invisible/missing requests return null. |
+| `ListAsync` | Supplies a default query, validates it, obtains scope and delegates to repository filtering. |
+| `GetHistoryAsync` / `GetCommentsAsync` | First verifies that the actor can read the request; otherwise throws `UnauthorizedAccessException`; then retrieves related records. |
+| `AddCommentAsync` | Reloads actor; requires ChangeStatus permission and request visibility; rejects whitespace-only content; trims text and stores author/server time. |
+| `ReassignAsync` | Requires permitted Staff and a visible Assigned request; validates the replacement Staff member's scope; rejects the same assignee; delegates version-checked reassignment and returns success/conflict. No reassignment HTTP route is mapped in this release. |
+| `GetCountsAsync` | Reloads actor and requires Manager role plus ViewRequest; validates the query and requests scoped totals. |
+| Private `GetActorAsync` | Rejects null/blank actor IDs and retrieves the stored identity. |
+| Private `GetScopeAsync` | Rejects unknown actors or missing ViewRequest permission and returns trusted scope. |
+| Private `ValidateQuery` | Rejects limit outside 1–100, negative offset, or an undefined status enum. |
+
+#### Data — SQLite (`src/CivicConnect.Data`)
+
+| Type | Purpose | Members and what they do |
+| --- | --- | --- |
+| `SqliteRequestRepository` class | Implements `IRequestRepository` with parameterized SQLite operations. | Constructor validates/stores `_connectionString` and accepts `_clock`. `RequestSelect` is the shared select-column list. All operations and private helpers are detailed below. |
+| `SqliteSchema` static class | Defines and creates the Core database structure. | `Version=1`; private `Sql` defines users, categories, groups, memberships, requests, transition/assignment history, comments, constraints and indexes. `EnsureCreatedAsync` opens SQLite, enables WAL, executes the idempotent schema and sets `PRAGMA user_version`. This is not a versioned migration system. |
+| `SqliteSetup` static class | Seeds reference data for staging/tests. | `AddCategoryAsync`, `AddUserAsync` insert missing catalogue/users; `AddStaffGroupAsync` inserts a group and category links; `AddUserToGroupAsync` links membership. Private `ExecuteAsync` opens a connection, enables foreign keys, binds parameters and executes SQL. |
+| `SqliteCredentialStore` class | Stores password hashes separately from Core data. | Constructor stores `_connectionString`; `EnsureCreatedAsync` creates `user_credentials`; `GetPasswordHashAsync` returns a user's hash or null; `SetPasswordHashAsync` inserts/updates a hash. Private `ExecuteAsync` enables foreign keys and executes parameterized SQL. It stores hashes; API code performs hashing. |
+| `SqliteReferenceData` static class | Supplies catalogue and health reads. | `ListCategoriesAsync` returns alphabetically ordered category names; `CanConnectAsync` opens the database and executes `SELECT 1`, returning false on `SqliteException`. |
+
+| `SqliteRequestRepository` method | What it does |
+| --- | --- |
+| `GetAsync` | Reads by request ID without actor scope; services must apply authorization before exposing data. |
+| `GetActorAsync` | Reads stored role and group/category memberships, constructing an `ActorContext` with case-insensitive category sets. |
+| `CategoryExistsAsync` | Checks the case-insensitive category catalogue. |
+| `CreateAsync` | Inserts the request and its timestamps/assignee/version. |
+| `ListAsync` | Applies scope and filters, chooses category or newest-first ordering with stable ID ordering, then applies limit/offset and maps rows. |
+| `GetHistoryAsync` | Reads transition records in insertion-ID order, including previous version and optional feedback. |
+| `GetCommentsAsync` | Reads authored comments in insertion-ID order. |
+| `AddCommentAsync` | Inserts request, author, content and timestamp. |
+| `ReassignAsync` | In one transaction, updates only an Assigned request with the expected version; increments version, records replacement responsibility; returns false and rolls back on conflict. |
+| `GetCountsAsync` | Uses one current instant to compute Open/Rejected/Resolved/Overdue with the same scope/filter predicates; does not paginate totals. |
+| `SaveTransitionAsync` | Updates only when old status and version match; increments version; inserts transition audit; records assignment when needed; commits all together, or rolls back on conflict/storage failure. |
+| Private `OpenAsync` | Opens a fresh connection and enables foreign-key enforcement. |
+| Private `RecordAssignmentAsync` | Closes any active assignment (`ended_at`) and inserts the new responsibility record within the caller's transaction. |
+| Private `AppendFilters` | Builds parameterized ownership/category visibility predicates plus ID/category/status/overdue filters. Empty non-global scope produces no rows. |
+| Private `MapRequest` | Converts database columns into a `ServiceRequest`, including nullable assignee/version. |
+| Private `Format` / `Parse` | Writes UTC round-trip timestamps using invariant culture and reads stored timestamps using invariant culture. |
+
+#### API — Authentication and infrastructure (`src/CivicConnect.Api`)
+
+| Type / file | Purpose | Members and what they do |
+| --- | --- | --- |
+| `CurrentUser` (`Auth/CurrentUser.cs`) | Converts the cookie identity to a Core actor. | `ToActor(ClaimsPrincipal)` reads name-identifier and role claims. Core services then reload authoritative role/groups from storage. |
+| `PasswordHasher` (`Auth/PasswordHasher.cs`) | Hashes/checks passwords with PBKDF2-SHA256. | Constants: `Algorithm`, `Iterations=100_000`, `SaltBytes=16`, `HashBytes=32`. `Hash(password)` generates random salt and the stored algorithm/iterations/salt/hash string. `DummyHash` gives missing users a hash-check workload. `Verify(password,storedHash)` parses the format, derives a candidate and compares using `FixedTimeEquals`; missing users still fail. |
+| `CivicConnectDatabase` record (`Infrastructure/CivicConnectDatabase.cs`) | Holds the configured SQLite connection string. | `ConnectionString` exposes it; `FromConfiguration` requires the configured value, resolves relative database paths against content root, creates the parent directory and returns the record. |
+| `DatabaseStartup` (`Infrastructure/DatabaseStartup.cs`) | Initializes schema and configured demo data. | `MinimumPasswordLength=8`; `Categories` contains Roads, Water, Waste, General; `DemoUsers` lists six seeded identities/roles/groups. `InitialiseAsync` creates schema/credentials, checks `Seed:Enabled`, seeds reference data and stores hashed demo passwords if sufficiently long; otherwise logs a warning. Private `SeedReferenceDataAsync` creates categories, Roads/Utilities groups, users and memberships. |
+| `RateLimits` (`Infrastructure/RateLimits.cs`, namespace `CivicConnect.Api`) | Configures per-client-IP login throttling. | `Login="login"` names the policy. `AddLoginRateLimit` installs fixed one-minute windows using `Security:LoginAttemptsPerMinute` (default 10), partitions by remote IP and returns 429 when rejected. |
+| `ReleaseInfo` (`Infrastructure/ReleaseInfo.cs`) | Exposes build identification. | `Version` reads assembly informational version or returns `unknown`; `/health` uses it. |
+| `Program` / `Program.cs` | Starts and wires the integrated application. | Top-level code registers clocks, database/repositories/services, JSON status names, cookie authentication, fallback authorization and rate limiting; installs error handling, optional HTTPS/HSTS, static files and security middleware; maps health/auth/request/report routes; initializes the database; runs the host. The explicit `public partial class Program` is empty and enables `WebApplicationFactory<Program>` tests. |
+
+**`Program.cs` error handler:** preserves `BadHttpRequestException.StatusCode` with `InvalidInput` (DEF-10); maps `UnauthorizedAccessException` to 403; other exceptions to 500. Cookies are HttpOnly, SameSite Strict, expire after eight hours with sliding expiration, and use configured secure-cookie behaviour. Static files and public health/login routes do not constitute protected request-data endpoints.
+
+#### API — Endpoints and contracts (`src/CivicConnect.Api/Endpoints`)
+
+| Type | Purpose | Members and what they do |
+| --- | --- | --- |
+| `AuthEndpoints` | Maps authentication routes. | `MapAuthEndpoints` maps POST login, POST logout, GET me; login is anonymous and rate limited. Private `LoginAsync` loads actor/hash, verifies credentials, returns the same 401 error for unknown user/wrong password, or creates ID/role claims and signs in. Logout lambda signs out and returns 204; me lambda returns current ID/role. |
+| `RequestEndpoints` | Maps catalogue and request operations. | `MaxTitleLength=120`, `MaxDescriptionLength=2000`. `MapRequestEndpoints` registers category/list/detail/submission/transition/comment routes. `SubmitAsync` checks API length limits, normalizes category spelling, calls Core and returns 201 plus Location/summary. `ListAsync` parses status, validates pagination, builds query and maps summaries using one response time. `GetDetailAsync` returns 404 for missing/invisible data or combines summary, description, history and comments. `ChangeStatusAsync` requires a target status and delegates to `TransitionService`. `AddCommentAsync` delegates and returns 204 on success. Internal `TryParseStatus` treats blank as no filter, rejects numeric status text, parses named enum values ignoring case. |
+| `ReportEndpoints` | Maps Manager reporting. | `MapReportEndpoints` requires Manager role on GET `/api/reports/counts`; private `GetCountsAsync` validates status, combines category/status/overdue filters and returns aggregate view. Core independently checks Manager access. |
+| `ApiResults` | Maps Core failures consistently to HTTP. | `Error(statusCode,error,detail)` returns JSON `ApiError`; `From(TransitionFailure)` maps authorization→403, missing request→404, invalid transition/conflict→409, remaining failures→400; `From(RequestFailure)` maps authorization→403, invalid state/conflict→409, remaining failures→400. |
+| `ApiError` record | Holds a structured API error. | `Error` is a stable code; optional `Detail` supplies an explanation. |
+| `LoginBody` record | Login request body. | Nullable `UserId`, `Password` carry submitted credentials. |
+| `SubmitRequestBody` record | Submission request body. | Nullable `Category`, `Title`, `Description` reach application validation. |
+| `TransitionBody` record | Status-change body. | Nullable `To`, `AssigneeId`, `Reason`, `ResolutionNote` support transition-specific validation. |
+| `CommentBody` record | Comment request body. | Nullable `Content` supplies the text to validate. |
+| `UserView` record | Authentication response. | `Id`, `Role` describe the signed-in identity. |
+| `RequestSummary` record | List/submission/detail summary response. | `Id`, `Category`, `Title`, `Status`, `RequesterId`, `AssigneeId`, `SubmittedAt`, `UpdatedAt`, `DueAt`, `IsOverdue` expose current request data. `From(request,now)` maps the entity and derives deadline/flag through `OverduePolicy`, defaulting to UTC now when omitted. |
+| `RequestDetail` record | Full authorized request response. | `Request` holds the summary; `Description`, `History`, `Comments` supply detail. |
+| `ActivityCountsView` record | HTTP representation of totals. | `Open`, `Rejected`, `Resolved`, `Overdue` mirror Core aggregate values. |
+
+#### Browser and deployment modules — not C# classes
+
+| Module | Functions / parts and what they do |
+| --- | --- |
+| `wwwroot/app.js` | `$` finds an element by ID; `currentUser` stores session state, `openRequestId` the selected record. `api` sends HTTP/JSON, handles 204 and throws readable errors; `show` writes status messages; `startSession` changes role-specific views and loads data; `loadCategories` fills submission options; `refresh` applies status/overdue filters, rebuilds rows and matching Manager totals; `openDetail` renders content/deadline/history. Event handlers perform login, logout, submission, filter refresh, detail closing and Staff self-assignment/rejection/resolution. Startup calls `/api/auth/me` to resume a session. User text uses `textContent`. There is no comment/reassignment UI here. |
+| `wwwroot/index.html` / `styles.css` | HTML defines login/session, submission, list/filter, Manager count and detail/action surfaces; CSS styles them. The frontend calls the real API and displays server-calculated overdue values. |
+| `deploy/staging/deploy.ps1` | Requires a clean tracked Git working tree; obtains the commit; runs tests; publishes Release output per commit; copies an existing staging DB to backups; writes the current-release pointer. |
+| `deploy/staging/start.ps1` | Reads the current release, requires the staging password variable, sets environment/URL/database/password configuration and runs the published DLL; optional `Port` defaults to 5090. |
+| `deploy/staging/rollback.ps1` | Requires an existing release identified by `Commit`; optionally copies a specified `RestoreBackup`; changes the current pointer. Server must be stopped first; restoring data discards later writes. |
+
+#### Verification classes and support modules
+
+Every test method in the eight suite classes is catalogued in Section 5. Their supporting members are below.
+
+| Class / type | Purpose and members |
+| --- | --- |
+| `AuthorizationTests` | Four policy tests; private `RequestId` supplies a sample identity. |
+| `LifecycleTests` | Thirteen test methods; `AllPairs()` generates all 16 status pairs; private `Staff(...)` builds a transition request; private `Id` supplies the request ID. |
+| `LifecycleTests.FixedClock` | Constructor captures a fixed instant; overridden `GetUtcNow()` returns it for deterministic audit-time checks. |
+| `LifecycleTests.FakeRepository` | Implements `IRequestRepository` for lifecycle isolation. Constructor sets optional `_status`; `Actor` controls trusted actor data; `Saved` records successful writes; `SaveResult` simulates conflict; `ThrowOnSave` simulates storage failure. `GetAsync` returns a synthetic request or null; `GetActorAsync` returns the configured actor or a Staff copy; `SaveTransitionAsync` throws, records or returns false according to controls. Other interface methods throw `NotSupportedException` because these tests do not use them. |
+| `BlackBoxTests` | Six methods exercise requirement-derived inputs against real SQLite: D1/D2, EP1/EP2, DT1 and ST1. |
+| `SqliteRepositoryIntegrationTests` | Five methods verify stored submission, ownership, category scope, transactional rollback and stale replay. |
+| `SqliteTestDatabase` | Constructor wires `Repository`, `Requests`, `Transitions` to a unique temporary file and optional clock. `ConnectionString` exposes that file; static Requester/Staff/Manager fields name fixture actors. `CreateAsync` creates schema and seeds users/categories/groups; `SubmitAsync` submits a standard pothole and asserts success; `Dispose` clears connection pools and attempts file deletion. |
+| `OverdueTests` | Four methods/11 cases; `Submitted` fixes the reference instant. Nested `TestClock` stores mutable `Now` and overrides `GetUtcNow()` to return it. |
+| `ApiIntegrationTests` | Ten methods/19 cases exercising real middleware, endpoints, Core and temporary SQLite, including DEF-10. |
+| `EndToEndTests` | Two full API journeys; `ApiTarget.FromEnvironment()` chooses in-process or deployed execution. These do not automate a browser. |
+| `OverdueApiTests` | Two integrated deadline/privacy/count/lifecycle tests. Its own nested `TestClock` has mutable `Now` and overridden `GetUtcNow()`. |
+| `ApiTarget` | Constructor selects deployed URL/password or an in-process `WebApplicationFactory<Program>` with a temporary DB, random password, optional clock/environment and high test login allowance. `Json` configures web JSON/status names; `IsDeployed` reports mode. `InProcess` always makes an isolated host; `FromEnvironment` selects deployed mode only when the E2E URL is set; `Anonymous` creates a client with its own cookies; `LoginAsAsync` signs in a fixture user and asserts 200; `Dispose` disposes the host, clears pools and attempts temporary-file deletion. Private fields hold factory, URL, database path and password. |
+| `HttpTestExtensions` | `PostJsonAsync` serializes requests with `ApiTarget.Json`; `ReadAsync<T>` deserializes response JSON using the same settings. |
+| Load tool `Program` (`tools/CivicConnect.LoadTest/Program.cs`) | Top-level code reads URL/user-count/duration arguments and staging password, logs in one client per virtual user, runs submit→list loops concurrently and prints per-operation latency/error/throughput metrics. Local `Measure` records elapsed time, HTTP success/status or `HttpRequestException`; local `Percentile` selects a percentile from sorted timings. Returns 1 when any measured sample failed, otherwise 0. |
+| Load tool `Sample` record | `Operation`, `Milliseconds`, `Succeeded`, `Status` describe one measured response/failure. |
+
+### 1.16.12. Overdue rule and implementation context
+
+**Rule:** A request is overdue only when **Unassigned or Assigned** and **current time is strictly after submission + 72 hours**. The window is a team assumption benchmarked against published municipal targets, not a stakeholder-approved SLA; category-specific targets remain deferred.
+
+| Situation | Result |
+| --- | --- |
+| One tick before / exactly at 72 hours | Not overdue |
+| One tick after 72 hours | Overdue if Unassigned/Assigned |
+| Rejected / Resolved | Excluded from overdue |
+| Assignment, reassignment or comments | Original deadline unchanged |
+| Open totals | Include overdue requests; overdue is a subset of Open |
+| Weekends / time-zone offsets | Elapsed time applies, including weekends; equivalent instants have equivalent deadlines |
+
+*A .NET tick is 100 nanoseconds.*
+
+| Component changed | Presentation explanation |
+| --- | --- |
+| **`OverduePolicy` — new** | Central rule: `ResolutionWindow` = three days; `DueAt` = submission + window; `Cutoff` = now − window; `IsOverdue` checks open status and strict boundary. |
+| `RequestQuery`, `ActivityCounts` | Nullable `Overdue` filter: `true` = overdue only, `false` = exclude overdue, omitted = no deadline restriction. Counts gain an Overdue total. |
+| `SqliteRequestRepository` | Injected clock; SQL combines overdue with authorization/category/status filters **before pagination**. Counts cover all matching rows, independent of list pagination, using one evaluation time for their calculation. |
+| `RequestSummary`, `ActivityCountsView` | Responses expose `DueAt`, `IsOverdue` and overdue totals. |
+| `RequestEndpoints`, `ReportEndpoints` | Submission/list/detail expose deadlines; list/report accept overdue filtering. Reports remain Manager-only. |
+| `Program` | Registers `TimeProvider.System`; supplies existing clock parameters to repository/services. `RequestService` and `TransitionService` implementations were not rewritten. |
+| `index.html`, `app.js` | Manager count, rule explanation, deadline filter, Due column/detail and overdue labels. List and counts use the selected filters. |
+
+**Speaker cue:** “Overdue is calculated when data is read. The interface displays the server’s result; backend authorization remains authoritative.”
+
+**UI limit:** Values refresh on reload, filter changes or actions; they do not continuously tick.
+
+### 1.16.13. Critical requirements — concise traceability
+
+| Requirement | Acceptance criterion | Implementation | Tests / evidence | Expected and observed result | Status / limitation |
+| --- | --- | --- | --- | --- | --- |
+| **FR-002/003** submission/categories | Valid input creates owned, categorised Unassigned request; invalid input saves nothing. | `RequestService.SubmitAsync`, catalogue/FK, submission endpoint. | Submission storage/partition tests; API3, API6. | Title lengths 0/1/120/121 → 400/201/201/400; `roads` → `Roads`. Passed. | DEF-08 closed; description maximum and all malformed branches not established. |
+| **FR-001/004/005/008; NFR-005/007** access/privacy | Anonymous denied; own records only; Staff restricted by category. | Cookie policy, visibility strategy, scoped SQL, transition guard. | D1, assignment decision table, Staff-category tests, API1/API4, overdue privacy journey. | 401 anonymous; 404/empty for another requester; out-of-scope changes denied. Passed. | DEF-01 closed; selected roles/routes verified. |
+| **FR-007** rejection feedback | Meaningful reason required and visible to requester. | `TransitionRequirement.Reason`, service, stored history/UI. | Blank-reason/audit tests; API7; E2E2. | Blank refused without saving; valid reason trimmed, saved and displayed. Passed. | In-app feedback verified; external delivery not established. |
+| **FR-009/011/015** lifecycle | Only approved transitions; eligible assignee; resolution note. | Rules/service, transactional repository, self-assignment UI. | 16-pair lifecycle table; ST1; E2E1. | Exactly 3/16 pairs allowed; invalid transitions do not save. Passed. | DEF-02 closed; other-assignee selection and reassignment route/UI incomplete. |
+| **NFR-004** atomicity/conflicts | Status/audit commit together; stale update cannot overwrite. | `SaveTransitionAsync` transaction and version predicate. | Audit-write fault injection; stale replay. | Failure leaves Unassigned/version 0/empty history; replay changes nothing. Passed. | SQLite verified; parallel-writer and disaster recovery not established. |
+| **FR-012/013/014** reports/overdue | Scoped counts; strict 72-hour rule; compatible filters. | Policy → SQL → API → UI. | 11 Core/SQLite + 2 API overdue cases; API8; API10 malformed-query regression; 19 exploratory checks. | Boundary agreement; stable deadlines; terminal exclusions; unpaginated totals; invalid boolean → 400, including Development after DEF-10. Reported passed. | FR-013 verified; DEF-07 closed (CR-M3-02 accepted); broader filter/UI coverage incomplete. |
+| **FR-010** comments/actions | Audited transitions; stored authored comments; blank comments refused. | Comment service/endpoint, history/comments tables. | Audit/rollback tests; valid comment round trip. | Audit and valid-comment checks passed. | Partial: blank/unauthorized comments, all fields and comment UI need further evidence. |
+
+### 1.16.14. Core verification and integrated-system evidence
+
+**Overdue evidence in this release: two test classes, six methods, 13 cases.** Core unit/component testing was Lethebe's allocated focus; Data/API/E2E coverage is wider team evidence.
+
+| Test method | Cases | What it establishes |
+| --- | --- | --- |
+| `Three_day_boundary_matches_policy_sql_counts_and_filters` | 8 | Unassigned/Assigned before, at and after deadline; Rejected/Resolved after deadline. Policy, SQL counts and filters agree. |
+| `Derived_overdue_works_for_existing_rows_and_preserves_scope_filters_and_pagination` | 1 | Existing rows work without migration or status/version/history mutation; scope, filters, pagination and reopened persistence remain effective. |
+| `Assignment_keeps_original_deadline_and_terminal_transitions_clear_overdue` | 1 | Assignment/reassignment/comments work; deadline stays fixed; terminal transitions remove overdue eligibility. |
+| `Deadline_uses_elapsed_time_across_offsets_and_future_submissions_are_not_overdue` | 1 | Offset-equivalent instants agree; future submissions are not overdue. |
+| `Overdue_journey_preserves_privacy_counts_filters_and_lifecycle` | 1 | Actual HTTP/SQLite journey: login, submit, advance time, report, access checks, assignment and resolution. |
+| `Overdue_count_is_not_limited_to_the_first_page_and_invalid_filter_is_rejected` | 1 | One-row page still reports three matching overdue requests; invalid filter returns 400. |
+
+**Additional access assertions:** own requests only; Staff category scope; another requester’s detail **404**; anonymous **401**; Staff accessing Manager reports **403**.
+
+**Infrastructure:** `SqliteTestDatabase` and `ApiTarget` accept injected clocks; nested `TestClock` advances time instantly. API tests sign in again after three days because eight-hour cookies expire. Temporary databases and an in-process server mean no running application or demo password is required.
+
+**Reported final result:** **88/88 passed** — 65 Core-project and 23 API-project cases. Progression: 72 baseline → 85 after overdue work → 88 after DEF-10. `API10_Malformed_query_values_get_400_not_500` adds three cases: `limit=abc` in Testing and Development, and `overdue=maybe` in Development. The regression failed before the fix and passed after it. The strict Release build is reported with **zero warnings/errors**. The suite now contains 46 test methods; case count alone is not proof of quality.
+
+**Exploratory evidence:** **19/19 checks passed** on an isolated Staging-configured instance of `5042b6d`, including a live deadline crossing, privacy, category scope, Manager counts, assignment and terminal transitions. This was a one-off script, not an automated browser suite. Earlier E2E1/E2E2 staging runs were on `c5778f9` and `7344b2a`; they are re-run on `m3-rc2` for the demonstration.
+
+
+#### Complete automated-test inventory
+
+The catalogue covers **all 46 test methods / 88 expanded cases** present in this release. A theory is one method but runs once for each data row; `LifecycleTests.AllPairs` generates 16 rows. Run a whole suite with `dotnet test CivicConnect.sln`, or one method with `dotnet test --filter "FullyQualifiedName~<MethodName>"`. For each row, the runner creates the fixture, performs the action, checks the expected outcome and cleans up.
+
+##### `AuthorizationTests` — 4 methods, 4 cases
+
+Source: `tests/CivicConnect.Core.Tests/AuthorizationTests.cs`.
+
+| Test method | Walkthrough / expected assertions |
+| --- | --- |
+| `Requester_can_view_only_their_own_requests` | Build Requester scope; own request is visible and another owner’s request is hidden. |
+| `Staff_visibility_is_the_union_of_all_group_request_types` | Combine Road/Streetlight and Waste groups; Road/Waste visible, Security hidden. |
+| `Manager_can_view_requests_but_cannot_change_status_through_this_policy` | Build Manager scope; arbitrary request visible, ChangeStatus denied. |
+| `Staff_can_change_status_when_authorized_by_the_policy` | Build Staff scope; ChangeStatus permitted. |
+
+##### `LifecycleTests` — 13 methods, 30 cases
+
+Source: `tests/CivicConnect.Core.Tests/LifecycleTests.cs`.
+
+| Test method | Walkthrough / expected assertions |
+| --- | --- |
+| `Table_allows_only_the_three_approved_transitions` | Enumerate 16 pairs; only Unassigned→Assigned, Unassigned→Rejected and Assigned→Resolved are allowed. |
+| `Assign_succeeds_and_saves_once` | Assign Unassigned to staff-2; success, Assigned result, exactly one save. |
+| `Reject_without_reason_is_refused_and_nothing_is_saved` | Reject with whitespace reason; MissingReason and no save. |
+| `Resolve_without_note_is_refused` | Resolve Assigned without note; MissingResolutionNote and no save. |
+| `Cannot_resolve_an_unassigned_request` | Resolve Unassigned even with note; InvalidTransition and no save. |
+| `Only_staff_may_change_status` | Try Requester and Manager transitions; NotAuthorised and no save (2 cases). |
+| `Unknown_request_is_reported` | Use a missing request; RequestNotFound. |
+| `Concurrent_change_is_reported_as_conflict` | Simulate repository save returning false; ConcurrencyConflict. |
+| `Storage_failure_propagates_and_is_not_reported_as_success` | Simulate storage exception; exception propagates instead of success. |
+| `Staff_outside_request_category_cannot_change_status` | Use Staff whose category excludes the request; NotAuthorised and no save (DEF-01). |
+| `Terminal_requests_cannot_be_assigned_again` | Try assigning Rejected and Resolved; InvalidTransition and no save (2 cases). |
+| `Null_actor_is_denied_without_saving` | Pass null actor; NotAuthorised and no save. |
+| `Rejection_audit_records_server_time_actor_and_only_relevant_information` | Reject at fixed time with padded reason and irrelevant fields; audit records server time/actor, trimmed reason, null assignee/note. |
+
+##### `BlackBoxTests` — 6 methods, 15 cases
+
+Source: `tests/CivicConnect.Core.Tests/BlackBoxTests.cs`.
+
+| Test method | Walkthrough / expected assertions |
+| --- | --- |
+| `D1_Requester_can_review_own_request` | Submit as req-1; detail exists with Unassigned status and own list contains its ID. |
+| `D2_Requester_with_no_requests_gets_an_empty_list` | Submit only for req-1; req-2 receives an empty list. |
+| `EP1_Submission_input_partitions` | Test 6 partitions: Roads/rOADS valid; blank title/description/category invalid; unknown category invalid; only valid inputs store a row. |
+| `EP2_Non_requesters_cannot_submit` | Use stored Staff/Manager IDs while claiming Requester; trusted role denies submission (2 cases). |
+| `DT1_Assignment_decision_table` | Try Requester, Manager, out-of-scope Staff and in-scope Staff; only the last assigns and changes stored status (4 cases). |
+| `ST1_Request_follows_approved_path_and_resolved_is_terminal` | Persist assign→resolve; reopen denied; requester sees Resolved and ordered history with Patched note. |
+
+##### `SqliteRepositoryIntegrationTests` — 5 methods, 5 cases
+
+Source: `tests/CivicConnect.Core.Tests/SqliteRepositoryIntegrationTests.cs`.
+
+| Test method | Walkthrough / expected assertions |
+| --- | --- |
+| `Submitted_request_is_stored_with_owner_category_and_initial_status` | Submit and read repository row; owner req-1, category Roads, initial Unassigned. |
+| `Requester_cannot_read_another_requesters_request_from_the_database` | Submit for requester 1; requester 2 gets null detail/empty list while owner has one row. |
+| `Staff_only_see_requests_in_their_groups_categories` | Submit Roads; Roads Staff reads it; General Staff gets null/empty. |
+| `Failed_audit_write_rolls_back_the_status_change` | Install an aborting audit-insert trigger, then assign; SqliteException, original status/version 0 and empty history remain. |
+| `Stale_transition_is_reported_as_conflict_and_changes_nothing` | Save the same version-0 transition twice; first true, replay false, stored Assigned/version 1 and one history entry. |
+
+##### `OverdueTests` — 4 methods, 11 cases
+
+Source: `tests/CivicConnect.Core.Tests/OverdueTests.cs`.
+
+| Test method | Walkthrough / expected assertions |
+| --- | --- |
+| `Three_day_boundary_matches_policy_sql_counts_and_filters` | Test 8 state/time rows: both open states at -1/0/+1 tick plus terminal states; policy, SQL totals and true/false filters agree. |
+| `Derived_overdue_works_for_existing_rows_and_preserves_scope_filters_and_pagination` | Advance clock on existing rows; verify owner/category scope, Manager filtering, pagination, denied requester reports, reopened repository, unchanged status/version/history. |
+| `Assignment_keeps_original_deadline_and_terminal_transitions_clear_overdue` | Advance to day 4; assign, reassign, comment, resolve/reject; original deadline preserved and final overdue count zero with histories retained. |
+| `Deadline_uses_elapsed_time_across_offsets_and_future_submissions_are_not_overdue` | Use offset-equivalent submission; exactly 72 h false, +1 tick true, future submission false. |
+
+##### `ApiIntegrationTests` — 10 methods, 19 cases
+
+Source: `tests/CivicConnect.Api.Tests/ApiIntegrationTests.cs`.
+
+| Test method | Walkthrough / expected assertions |
+| --- | --- |
+| `API1_Unauthenticated_calls_get_401` | Call GET/POST requests, categories and reports anonymously; all four return 401. |
+| `API2_Wrong_password_and_unknown_user_are_indistinguishable` | Login with wrong password and unknown user; both 401 with the same error code. |
+| `API3_Submitted_request_is_created_and_readable_back` | POST lowercase roads; 201, Location header, Unassigned and canonical Roads; read back owner/description. |
+| `API4_Requester_cannot_see_another_requesters_request` | Create for requester-1; requester-2 detail returns 404 and list is empty. |
+| `API5_Non_staff_cannot_change_status` | Try Requester/Manager status change; both 403 and stored request remains Unassigned (2 cases). |
+| `API6_Title_length_boundaries` | POST titles of length 0/1/120/121; expect 400/201/201/400 (4 cases). |
+| `API7_Invalid_status_changes_are_refused_with_a_reason` | Reject with blank reason→400 MissingReason; resolve Unassigned→409 InvalidTransition. |
+| `API8_Manager_counts_match_stored_requests_and_are_manager_only` | Submit three, reject one; Manager counts 2 Open/1 Rejected/0 Resolved; Staff report denied 403. |
+| `API10_Malformed_query_values_get_400_not_500` | Bad limit in Testing/Development and bad overdue in Development; all 400 (3 cases, DEF-10 regression). |
+| `API9_Health_reports_status_and_release_version` | Call anonymous health; 200, Healthy, version starts 0.3.0. |
+
+##### `EndToEndTests` — 2 methods, 2 cases
+
+Source: `tests/CivicConnect.Api.Tests/EndToEndTests.cs`.
+
+| Test method | Walkthrough / expected assertions |
+| --- | --- |
+| `E2E1_Request_is_submitted_assigned_resolved_and_the_requester_sees_the_outcome` | Requester submits Roads; Staff assigns/resolves; requester finds it under Resolved and sees assignee, ordered history and Pothole filled note. |
+| `E2E2_Rejected_request_shows_the_requester_the_reason` | Requester submits Water; utilities Staff rejects; requester sees Rejected and the exact maintenance reason. |
+
+##### `OverdueApiTests` — 2 methods, 2 cases
+
+Source: `tests/CivicConnect.Api.Tests/OverdueApiTests.cs`.
+
+| Test method | Walkthrough / expected assertions |
+| --- | --- |
+| `Overdue_journey_preserves_privacy_counts_filters_and_lifecycle` | Submit, advance to 72 h and +1 tick, re-login; verify deadline/flag, privacy, category scope, 401/403/404, filtered Manager totals, assignment then resolution. |
+| `Overdue_count_is_not_limited_to_the_first_page_and_invalid_filter_is_rejected` | Submit three, advance four days and re-login; paginated list has one but report counts three; malformed overdue returns 400 on list/report. |
+
+### 1.16.15. Defects, security and remaining debt
+
+| Record / finding | Handling / current position |
+| --- | --- |
+| **DEF-01, DEF-02** | Closed: resource authorization fixed; lifecycle wording aligned with CR-M2-01 and transition tests. |
+| **DEF-04–06, DEF-08** | Closed: duplicate ADR removed; vulnerable dependencies upgraded at `950f885`; D1 assertions added; category spelling normalized. |
+| **DEF-07** | **Closed**: CR-M3-02 accepted by the team (PR #14), with the 72-hour rationale and sources recorded. |
+| **DEF-03, DEF-09** | DEF-03 **Open**: original M2 RTM column mismatch; corrected M3 trace retained separately. DEF-09 **Mitigated / open**: WAL at `c5778f9` improves submission latency but does not remove serialized writes. |
+| **DEF-10** | **Closed**: malformed queries returned 500 in Development. `Program.cs` now preserves `BadHttpRequestException.StatusCode` and returns `InvalidInput`; API10 provides three red-then-green regression cases. |
+| Static suppressions | CA2208, CA1050 and CA1305 fixed. `CA1707`, `CA1848`, `CA1873` suppressed with written test-naming/logging reasons. Release evidence reports CI build/test, dependency and Gitleaks gates passed on push and PR; both checks are required on `main` (branch protection confirmed). |
+| Authentication/transport | PBKDF2, HttpOnly/SameSite cookies and rate limiting implemented; shared demo credentials, missing account lifecycle/MFA and HTTP staging remain limitations. |
+
+**Existing technical debt:** TD-01 seeded accounts/admin UI; TD-02 string category permissions; TD-03 broad Manager scope; TD-04 expanding lifecycle complexity; TD-05 SQLite limits; TD-06 credentials/password lifecycle/MFA; TD-07 TLS; TD-08 schema migrations; **TD-09 missing automated browser UI tests**. The global derived deadline is a CR-M3-02 limitation, not a numbered debt entry.
+
+**Follow-up priorities:** individual account management, verified TLS/secure-cookie behaviour, migration/restoration tests, realistic concurrency/load testing and completion of deferred UI/negative-test coverage. Revisit narrower Manager scope, category identifiers, state design and persisted deadlines when requirements expand. **Release remains CONDITIONALLY READY**, with all three release conditions met (§1.16.10). Production use also requires the account-security and TLS gaps to be addressed.
+
+### 1.16.16. Metrics and documentation
+
+- **Historical coverage:** API run line/branch: API **89/59%**, Core **82/54%**, Data **85/88%**. Core run: Core **80/58%**, Data **67/67%**. Separate reports; not additive or refreshed after overdue work.
+
+- **Historical 10-user WAL comparison:** submit p95 **818 → 311 ms**; throughput **66.8 → 137.7 req/s**; list p95 **27 → 46 ms**. Short localhost runs with unequal data; no numeric NFR target or overdue-report load test.
+
+- Fault injection, access-denial and historical mutation checks support specific failure protections; they do not prove complete fault detection or production readiness.
+
+| Documentation in updated main | Evidence added |
+| --- | --- |
+| `CR-M3-02_Overdue_Request_Rule.md` | Rule, acceptance boundary, API/UI contract, implementation and limitations; now also records Lethebe’s proposal, municipal benchmarks, alternatives and team acceptance (PR #14). |
+| `PED.md` | FR-013 traceability, risk and conditional readiness; §1.16.0 names `m3-rc2` on `main`. Earlier sections quote 72 or 85 cases as historical stages; 88 is the current total. |
+| `DEFECT_REGISTER.md` | DEF-07 closed; DEF-09 mitigated/open; DEF-10 closed with malformed-query regression evidence. |
+| `TEST_EVIDENCE.md` | 72 baseline + 13 overdue + 3 DEF-10 cases = **88**; **19/19 exploratory checks** plus isolated browser smoke evidence. Historical coverage/load figures remain labelled. |
+
+**Documentation boundary:** `RELEASE_EVIDENCE_SUMMARY.md` supplies the current conditional decision and 88-case result. Older PED/CR-M3-02/DEF-07 passages still cite 72 or 85 cases; these are historical stages. Statements that comments/reassignment are wholly untested are also stale: the overdue SQLite journey checks their successful path, while dedicated negative/UI coverage remains incomplete.
