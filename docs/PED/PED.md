@@ -457,6 +457,7 @@ I: Impact (Low, Medium, High)
 | RISK-M3-02 | Submissions slow down under concurrent use | SQLite serialises writes (ADR-07, DEF-09) | M | M | Medium | WAL mode; load-tested at 10 users ([performance](../quality/PERFORMANCE_TEST.md)) | Move to the PostgreSQL adapter behind `IRequestRepository` | Kasper | Open |
 | RISK-M3-03 | The team cannot explain the AI-assisted M3 code during the defence | Large change set drafted with AI assistance (AI-M3-01, AI-M3-02) under deadline pressure | M | H | High | Small commits, tests labelled with requirement IDs, every member reviews the PR | Walk through the code together before the presentation; reject anything nobody can explain | All | Open |
 | RISK-M3-04 | Requirement gaps remain at release | FR-006 search, FR-010 comments and remaining FR-014 gaps; DEF-07 implemented under CR-M3-02 | H | M | Medium | Gaps are listed in the RTM (§1.5.4) and the release summary | Formally defer through change control if not done in M4 | Lethebe | Open |
+| RISK-M3-05 | Test evidence does not reflect production scale | One laptop, localhost, short single 60 s load runs; SQLite rather than PostgreSQL | M | M | Medium | Results stated with their limits ([performance](../quality/PERFORMANCE_TEST.md)) | Repeat runs in a production-like environment before real use | Kasper | Open |
 
 ---
 
@@ -829,6 +830,6 @@ by `Staff_outside_request_category_cannot_change_status` and `DT1` rule R3, and 
 | Line coverage 80–89% | Most code ran during the tests | That the results were checked. Branch coverage is ~55–60% |
 
 ### 1.16.10. Release readiness
-**CONDITIONALLY READY.** FR-013 overdue follow-up: the user selected 3 days; CR-M3-02 records the rule and implementation, verified by 13 new cases (85/85 full regression) and a strict Release build. Conditions: (1) CI passes on the PR and is a required check; (2) CR-M3-02 receives repository review;
-(3) the PR has two approvals and ADR-07/ADR-08 are accepted. Residual risks RISK-M3-01 to RISK-M3-04 are in §1.10.
+**CONDITIONALLY READY.** FR-013 overdue follow-up: the 72-hour window is an explicit team assumption proposed by Lethebe, benchmarked against published municipal turnaround times in CR-M3-02, which records the rule and implementation, verified by 13 new cases (85/85 full regression) and a strict Release build. Conditions: (1) CI passes on the PR and is a required check; (2) CR-M3-02 receives repository review;
+(3) the PR has two approvals and ADR-07/ADR-08 are accepted. Residual risks RISK-M3-01 to RISK-M3-05 are in §1.10.
 Full gate table: [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md).

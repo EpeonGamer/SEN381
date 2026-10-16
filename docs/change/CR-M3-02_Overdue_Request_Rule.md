@@ -1,6 +1,6 @@
 # CR-M3-02: Derived overdue requests
 
-Date: 2026-10-16. Rule selected by the user during implementation; repository review remains pending.
+Date: 2026-10-16. Proposed and implemented by Lethebe (Member One, commit `5042b6d`). Status: **team approval pending** in the M3 pull-request review.
 
 ## Decision and acceptance criteria (FR-013)
 
@@ -13,6 +13,46 @@ Date: 2026-10-16. Rule selected by the user during implementation; repository re
 - Lists and counts accept optional `overdue=true|false`, combined with existing category/status/scope filters. Omission preserves the previous unfiltered behaviour. Counts cover all matching records, independently of list pagination.
 - Requester ownership, staff category scope and Manager-only report access continue to apply.
 - The UI shows deadlines, overdue labels, an overdue filter and a Manager overdue count. List and count filters agree.
+
+## Rationale: why 72 hours
+
+No CivicConnect stakeholder has set a resolution target, and the M3 brief says not to invent one. The window is therefore
+an **explicit team assumption**, chosen to sit in the range that municipalities publish for routine faults:
+
+| Source | Published turnaround |
+|---|---|
+| Johannesburg Roads Agency, in Parliament reply NW585 (CoGTA, 11 April 2016) | "attempt to resolve the calls within the 3 days turnaround time" |
+| Ekurhuleni, same reply | Streetlights: average 3 days. Potholes: 24 hours (major roads), 5 working days (minor roads) |
+| Tshwane / Mangaung, same reply | Target 48 hours / pothole target 5 days |
+| Washington DC Department of Transportation | Potholes repaired "within three business days (72 hours)" of the report |
+
+IT service desks show the same pattern: resolution targets are set per organisation and per priority, not by ITIL itself.
+That is why CivicConnect records its own figure in this change record.
+
+**Alternatives considered**
+
+| Option | Why not chosen for M3 |
+|---|---|
+| 48 hours | Matches Tshwane's strictest target, but staff have no priority levels yet, so ordinary requests would be flagged before they could reasonably be done |
+| 5 working days | Needs a business-day and South African public-holiday calendar, which adds complexity and a new failure point |
+| Per-category targets | Best long-term fit (a burst pipe is not a missing bin), but there are no agreed targets per category; deferred |
+| No rule / defer | Leaves FR-013 unmet (DEF-07) |
+
+**Elapsed hours, not business days.** DC counts 3 *business* days. CivicConnect counts 72 *elapsed* hours, so weekends count.
+This is simpler (no holiday calendar) and errs towards flagging a request for management attention. A request submitted on
+Friday afternoon becomes overdue on Monday afternoon.
+
+**Low cost of being wrong.** The window is one constant (`OverduePolicy.ResolutionWindow`) and overdue is derived at read
+time. Changing it is a one-line change plus the boundary tests, with no data migration. "Overdue" only flags a request; it
+triggers no escalation or penalty.
+
+**Limits of this evidence.** The benchmarks are routine *road and electrical* faults from other cities and from 2016. They
+do not validate the window for all CivicConnect categories, and no stakeholder has confirmed it. Stakeholder validation is
+an action for M4.
+
+Sources: [PMG — Question NW585 to the Minister of CoGTA](https://pmg.org.za/committee-question/2699/) ·
+[DDOT — Pothole Repair](https://ddot.dc.gov/node/543302) ·
+[University of Minnesota IT — incident priority targets](https://it.umn.edu/node/56176) (example of organisation-set targets)
 
 ## Implementation and evidence
 

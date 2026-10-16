@@ -11,7 +11,7 @@
 
 ## Overdue follow-up (2026-10-16, working tree)
 
-CR-M3-02 implements the user-selected three-day overdue rule. Baseline before edits: 72/72 passed.
+CR-M3-02 implements the three-day overdue rule (a team assumption; rationale and sources in CR-M3-02). Baseline before edits: 72/72 passed.
 After implementation: **85/85 passed** (Core 65, API 20), including all original cases and 13 new cases.
 Release build with `dotnet build CivicConnect.sln -c Release --no-restore -warnaserror`: zero warnings/errors.
 Full regression command: `dotnet test CivicConnect.sln --no-restore --logger "console;verbosity=minimal"`.
