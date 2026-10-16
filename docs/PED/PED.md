@@ -66,6 +66,7 @@
 | 1.0.0 | 2026/09/09 | Formal Milestone 1 Baseline Submission | Team | Aidan, Lethebe |
 | 2.0.0 | 2026/09/30 | M2 controlled update: ADR-04 lifecycle decision, ADR-05 authorization/visibility decision, ADR-06 technology-stack decision, data/persistence baseline, affected RTM evidence, initial Core implementation and 29 passing tests | Team | Aidan, Lethebe |
 | 3.0.0 | 2026/10/16 | M3 controlled update: CR-M2-01 wording applied to FR table (DEF-02); RTM M3 verification trace (§1.5.4, from Member One's M3 review); M3 risks; M3 gate (§1.11); M3 implementation evidence (§1.13); staging (§1.14); M3 evidence index (§1.16) incl. Member One's baseline-conformance, defect, metric and debt analysis | Team (AI-assisted, AI-M3-02) | Aidan, Lethebe |
+| 3.1.0 | 2026/10/16 | M3 rc2: release conditions closed (CI required and green; PR #14 approved by two reviewers; ADR-07, ADR-08 and CR-M3-02 accepted); DEF-10 fix; AI-M3-01/02 completed; 72-hour rationale (CR-M3-02); ADR-06 and §1.12 keep the M2 PostgreSQL baseline with an M3 note per ADR-07; stack diagram updated (Aidan); release identifier `m3-rc2` | Team | Documentation-only update merged by repository admin bypass before the deadline (reason recorded in the PR) |
 
 ---
 
@@ -200,7 +201,7 @@ was produced by Member One during the M3 review. Statuses were then updated as i
 | FR-010 | Material actions/comments are recorded | Comments saved with author; empty comments rejected; every transition audited | `transition_history`, `request_comments`, `POST /api/requests/{id}/comments` | Transition audit: `Rejection_audit_records_...`, `Failed_audit_write_rolls_back_the_status_change` | Audit entry per transition | R1 | **Partially verified**: transition audit verified; comment endpoint untested |
 | FR-011 | Requests close only under defined conditions | Only Assigned can be Resolved, with a resolution note; requester sees Resolved | `RequestStatus`, `TransitionRules`, `TransitionService` | `Resolve_without_note_is_refused`; `Cannot_resolve_an_unassigned_request`; `ST1`; `E2E1` | Missing note / Unassigned → refused; valid resolve persisted and visible | R1, S1 | **Verified** |
 | FR-012 | Managers see service activity | Overview without exposing data outside the approved scope | `GET /api/reports/counts` (Manager role), Manager scope | `Manager_can_view_requests_but_cannot_change_status_through_this_policy`; `API8` | Manager gets counts; Staff 403 | R1 | **Partially verified**: counts only; no richer activity view |
-| FR-013 | Managers see counts by lifecycle condition | Open, overdue and resolved counts; overdue strictly after 72 hours while open (CR-M3-02) | `OverduePolicy`, `SqliteRequestRepository.GetCountsAsync`, summary/detail API, deadline filter and Manager count UI | `API8`; `OverdueTests`; `OverdueApiTests` | Exact deadline not overdue; +1 tick overdue; terminal states excluded; scope/filters preserved | R1; `docs/quality/TEST_EVIDENCE.md` overdue follow-up | **Verified** by automated Core/SQLite/HTTP cases; DEF-07 implemented; repository review pending |
+| FR-013 | Managers see counts by lifecycle condition | Open, overdue and resolved counts; overdue strictly after 72 hours while open (CR-M3-02) | `OverduePolicy`, `SqliteRequestRepository.GetCountsAsync`, summary/detail API, deadline filter and Manager count UI | `API8`; `OverdueTests`; `OverdueApiTests` | Exact deadline not overdue; +1 tick overdue; terminal states excluded; scope/filters preserved | R1; `docs/quality/TEST_EVIDENCE.md` overdue follow-up | **Verified** by automated Core/SQLite/HTTP cases and a 19-check exploratory run; DEF-07 closed; CR-M3-02 accepted |
 | FR-014 | Managers filter by category/status | Filtered counts/lists within the Manager's scope | `category`/`status` parameters on counts and list | — | — | — | **Implemented, unverified** (no dedicated test) |
 | FR-015 | Consistent lifecycle (amended by CR-M2-01) | Only Unassigned→Assigned, Unassigned→Rejected, Assigned→Resolved; all others refused, nothing changed | `RequestStatus`, `TransitionRules`, `TransitionService` | `Table_allows_only_the_three_approved_transitions` (16 pairs); `Terminal_requests_cannot_be_assigned_again`; `ST1`; `API7` | Exactly 3 of 16 pairs allowed; invalid → `InvalidTransition`/409 | R1 | **Verified**; DEF-02 closed (wording reconciled) |
 | NFR-001 | Acceptable response under normal load | No numeric target set | Indexes, WAL mode | Load test 1 and 10 users | Compared with the 1-user baseline (no formal target) | P1 | **Measured, no target**; DEF-09 mitigated |
@@ -509,17 +510,17 @@ Based on Master Project Brief Appendix D.
 
 **M3 status:** an integrated release candidate (API + frontend + Core + SQLite) is built, tested and deployed to simulated staging.
 
-**Outcome:** CONDITIONALLY READY. The evidence and conditions are in the [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md).
+**Outcome:** CONDITIONALLY READY, with all three release conditions met; the remaining items are accepted, non-blocking limitations. Evidence: [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md).
 
 | Check | Status |
 |---|---|
 | Release candidate identifiable | YES: version `0.3.0+<commit>` reported by `/health`; final commit/tag in §1.16 |
-| Automated verification | YES: 72/72 locally. GitHub CI run: **pending** (on the PR) |
+| Automated verification | YES: 88/88. GitHub CI (`build-and-test`, `secrets-scan`) green on push and on PR #14; both are required checks on `main` |
 | Requirements/traceability checked | YES: RTM §1.5.4 with gaps marked |
 | Risk review completed | YES: M3 risk review in §1.10 |
-| Repository/governance controls checked | **PENDING**: PR with two approvals; ADR-07 and ADR-08 to be accepted |
+| Repository/governance controls checked | YES: PR #14 approved by Aidan and Lethebe; ADR-07, ADR-08 and CR-M3-02 accepted |
 
-**Reviewers:** to be recorded when the PR is approved.
+**Reviewers:** Aidan, Lethebe (PR #14, 2026-10-16).
 
 ## 1.12. System Architecture & Design
 
@@ -528,10 +529,12 @@ Based on Master Project Brief Appendix D.
 The architectural decisions driving the technogoly used for CivicConnect are driven by the shareholders of the project, as well as the development team's capabilities. The requirements for the project that have been determined to be significant include Security, Accessibility, Performance, Integration of systems, Data integrity and Maintainability. Users of CivicConnect will need access to the technology used, whilst keeping data secure. The performance of the project will also need to be adequate for users to have a seemless experience. Meanwhile, the developers and management will want to ensure data is secure and the correct data is being utilized in CivicConnect. Developers will also want an easily maintainable system to both add features in the future as well as fix any defects that arise in the short-term. The developers will therefore also want a system with functional integrations, with adequate cohesion and coupling of systems for maximum functionality of CivicConnect. With this in mind, the following Technology stack has been determined to be ideal for CivicConnect:
 
 
-C# Programing, ASP.NET Core, and SQLite Distributed Database System, JSON scripts and C# Web Application\
-The reason for this is the developers have experience in dealing with these systems, thereby fulfilling maintainability requirements. SQLite integration is effiective with C# and .NET frameworks, as well as providing flexibility with it's SQL language model. There is also the ability forr SQLite to integrate with other software languages thereby allowing for a more micro-service system that has substantial enough cohesion for the project. Additionally C# will allow efficient programming for better performance, while providing adequate security measures that are built in to C#. Lastly, because everything is open-source and free, it is both accessible to the users and to the developers and meets the shareholder's requirements for costs.
+C# Programing, ASP.NET Core, PostgreSQL Database System, with npgSQL integration\
+The reason for this is the developers have experience in dealing with these systems, thereby fulfilling maintainability requirements. npgSQL also allows PostgreSQL integration with C# and .NET frameworks. Additionally C# will allow efficient programming for better performance, while providing adequate security measures that are built in to C#. Lastly, because everything is open-source and free, it is both accessible to the users and to the developers and meets the shareholder's requirements for costs.
 
-The following stacks were also analyzed and elements of each stack can also be utilized for CivicConnect, however the stack as a whole was not seleceted:
+> **M3 update (2026-10-16, ADR-07):** the M3 release candidate stores data in **SQLite**, an embedded single-file database accessed through `Microsoft.Data.Sqlite`, behind the unchanged `IRequestRepository` interface. A database server for CI and staging was not achievable in M3. SQLite allows one writer at a time (DEF-09), so **PostgreSQL remains the intended production database**. The application is a single ASP.NET Core service; the stack diagram below shows the implemented M3 configuration.
+
+The following stacks were also analyzed and elements of each stack can also be utilized for CivicConnect, however the stack as a whole was not selected:
 
 Python Programming, Django, with PostgreSQL: This was decided not to be undertaken due to the lack of familiarity and potential complexities involved in Django and Python programming\
 Java, SpringBoot, with PostgreSQL, JUnit and Maven: This stack was declined due to the potential Monolithic behaviour of the stack, as well as performance drawbacks contained within Java.\
@@ -739,7 +742,7 @@ repository or CI rather than repeating it.
 |---|---|
 | Team members | Kasper van Niekerk (602622), Aidan Lakmeeharan (602899), Lethebe Kutloano (601712) |
 | Repository | https://github.com/EpeonGamer/SEN381 |
-| M3 release candidate | Git tag **`m3-rc1`** on `main` (version `0.3.0`). The tag identifies the assessed commit; its hash is given in the formal submission and is reported by `/health` on the deployed build |
+| M3 release candidate | Git tag **`m3-rc2`** on `main` (version `0.3.0`), superseding `m3-rc1`. The tag identifies the assessed commit; its hash is given in the formal submission and is reported by `/health` on the deployed build |
 | PED version | v3.0 |
 | RTM | §1.5.4 (M3 trace) continuing §1.5.3 |
 | CI / test evidence | GitHub Actions workflow *CI* (`.github/workflows/ci.yml`; `test-results` artifact); [Test Evidence](../quality/TEST_EVIDENCE.md) |
@@ -750,7 +753,7 @@ repository or CI rather than repeating it.
 
 - **Implemented scope:** requester submission, status, list and detail with history; staff assign, reject and resolve within their group scope; manager counts. Authenticated API with a small web UI, on SQLite.
 - **Build:** .NET 8 solution with `CivicConnect.Core`, `.Data`, `.Api`, two test projects and a load-test tool.
-- **Status:** CONDITIONALLY READY ([Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md)).
+- **Status:** CONDITIONALLY READY, all release conditions met ([Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md)).
 
 ### 1.16.2. M2 baseline conformance
 *Component analysis contributed by Member One (M3 review), extended with the M3 layers.*
@@ -789,7 +792,7 @@ Workflow `.github/workflows/ci.yml` runs on every push and every PR into `main`.
 3. `dotnet list package --vulnerable --include-transitive` (dependency security).
 4. Gitleaks over the full Git history (secrets).
 
-**Gate rule:** `CI / build-and-test` must be a required status check on `main`, so a failure blocks the merge. *This branch-protection setting must be confirmed in GitHub by the team.*
+**Gate rule:** `CI / build-and-test` must be a required status check on `main`, so a failure blocks the merge. Confirmed: `build-and-test` and `secrets-scan` are required checks on `main`, with two approvals required. The repository admin can bypass these rules; the one bypass (the documentation-only rc2 update) is recorded in its PR and in the change log.
 **Evidence of the gate working:** the analyzer gate rejected new code with CA1305 locale-dependent parsing, which was then fixed (commit `f9fbdf6`).
 
 ### 1.16.6. Quality strategy applied (risk-based)
@@ -830,6 +833,5 @@ by `Staff_outside_request_category_cannot_change_status` and `DT1` rule R3, and 
 | Line coverage 80–89% | Most code ran during the tests | That the results were checked. Branch coverage is ~55–60% |
 
 ### 1.16.10. Release readiness
-**CONDITIONALLY READY.** FR-013 overdue follow-up: the 72-hour window is an explicit team assumption proposed by Lethebe, benchmarked against published municipal turnaround times in CR-M3-02, which records the rule and implementation, verified by 13 new cases (85/85 full regression) and a strict Release build. Conditions: (1) CI passes on the PR and is a required check; (2) CR-M3-02 receives repository review;
-(3) the PR has two approvals and ADR-07/ADR-08 are accepted. Residual risks RISK-M3-01 to RISK-M3-05 are in §1.10.
+**CONDITIONALLY READY, with every release condition met.** (1) CI passes and both checks are required on `main`; (2) CR-M3-02, the 72-hour overdue rule, is accepted, with its rationale and sources recorded; (3) PR #14 has two approvals and ADR-07/ADR-08 are accepted. The classification stays "conditionally" rather than "ready" because of accepted, non-blocking limitations: FR-006 search is not built, FR-010/FR-014 lack dedicated tests, staging runs without HTTPS, and SQLite limits write concurrency. Residual risks RISK-M3-01 to RISK-M3-05 are in §1.10.
 Full gate table: [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md).

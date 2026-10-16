@@ -10,18 +10,22 @@ CivicConnect requires technology stack for development. The stack needs to adher
 
 ## 2. Decision
 
-The stack of C#, ASP.NET, JSON and SQLite.
+The stack of C#, ASP.NET, PostgreSQL and npgSQL.
+
+> **M3 update (2026-10-16): persistence revised by ADR-07.** For the M3 release candidate, build, CI and staging use
+> **SQLite** (an embedded, single-file database) behind the unchanged `IRequestRepository` interface. C#, ASP.NET Core and
+> the overall design are unchanged. **PostgreSQL remains the intended production database.** This is a controlled
+> deviation: the original decision above is kept as the M2 baseline, and ADR-07 records the evidence, trade-offs and reversal path.
 
 ## 3. Alternatives considered
 
-C# programming with PostgreSQL.
 Python Programming, Django, with PostgreSQL/SQLite\
 Java, SpringBoot, with PostgreSQL, JUnit and Maven\
 Typescript, Node/Express, with PostgreSQL/Vitest/Jest, React/Server-rendered Pages
 
 ## 4. Rationale
 
-The reasoning behind the decisions is due to the familiarity of the software available, the languages and the integrations to the development team. Additionally security and maintainability are also adequately accounted for from these technologies. Additionally it allows for a better micro-service stack than C# integration with PostgreSQL would have.
+The reasoning behind the decisions is due to the familiarity of the software available, the languages and the integrations to the development team. Additionally security and maintainability are also adequately accounted for from these technologies.
 
 Furthermore, based off of research gathered from Assignment 2, the stack allows for an adequate cohesion and coupling balance, such that the system works effectively whilst maintaining a degree of flexibility should and alternative programming software prove to be necessary.
 
@@ -47,7 +51,8 @@ This ADR establishes technology stacks to be utilized and the reasoning behind t
 ## 8. Evidence
 
 - PED 1.12 — System Architecture & Design.
-- StackDiagram in `docs/architecture/diagrams/StackDiagram.png`.
+- StackDiagram in `docs/architecture/diagrams/StackDiagram.png` (updated in M3 to show the implemented SQLite persistence, ADR-07).
+- ADR-07 — SQLite Persistence Adapter for the M3 Release Candidate.
 - CivicConnect A2 design quality and Design Pattern research.
 - Current C#/.NET Core project structure in `src/CivicConnect.Core/`.
 

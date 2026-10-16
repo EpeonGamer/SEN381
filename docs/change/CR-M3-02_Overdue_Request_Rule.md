@@ -1,6 +1,6 @@
 # CR-M3-02: Derived overdue requests
 
-Date: 2026-10-16. Proposed and implemented by Lethebe (Member One, commit `5042b6d`). Status: **team approval pending** in the M3 pull-request review.
+Date: 2026-10-16. Proposed and implemented by Lethebe (Member One, commit `5042b6d`). Status: **Accepted** by the team (2026-10-16, PR #14), including the 72-hour rationale below.
 
 ## Decision and acceptance criteria (FR-013)
 
