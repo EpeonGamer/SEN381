@@ -95,7 +95,9 @@ public static class SqliteSchema
         await using var connection = new SqliteConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
         await using var command = connection.CreateCommand();
-        command.CommandText = Sql + $"\nPRAGMA user_version = {Version};";
+        // WAL journal mode (stored in the file) lets readers continue while a write is in progress, which
+        // reduced queued-write latency under concurrent load (DEF-09). Writes are still one at a time.
+        command.CommandText = "PRAGMA journal_mode = WAL;\n" + Sql + $"\nPRAGMA user_version = {Version};";
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }
