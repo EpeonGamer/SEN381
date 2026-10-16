@@ -1,5 +1,14 @@
 # Test Evidence (M3)
 
+## DEF-10 fix and overdue exploratory test (2026-10-16)
+
+- **Full run after the DEF-10 fix: 88/88 passed** (Core 65, API 23). New: `API10_Malformed_query_values_get_400_not_500`
+  (3 cases). It was written first and failed in Development (`Expected BadRequest, Actual InternalServerError`), then passed after the fix.
+- **Exploratory system test of CR-M3-02:** 19/19 checks passed against release `5042b6d` on an isolated instance (Staging
+  configuration, throwaway database, submission times backdated). Checks covered the live deadline crossing (a request 50 s before its
+  deadline became overdue with no data change), privacy per requester, staff category scope, manager counts overall and per category,
+  assignment keeping the deadline, and resolve/reject clearing overdue. The script was run once during the session and is not part of the automated suite.
+
 ## Overdue follow-up (2026-10-16, working tree)
 
 CR-M3-02 implements the user-selected three-day overdue rule. Baseline before edits: 72/72 passed.
