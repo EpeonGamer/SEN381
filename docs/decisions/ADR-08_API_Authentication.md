@@ -1,6 +1,6 @@
 # ADR-08: API Authentication for the M3 Release Candidate
 
-**Status:** Proposed (needs two reviewer approvals before it is Accepted)
+**Status:** Accepted (2026-10-16, approved by Aidan and Lethebe in PR #14)
 
 **Date:** 2026-10-16
 
