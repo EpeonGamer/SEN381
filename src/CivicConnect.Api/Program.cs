@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text.Json.Serialization;
 using CivicConnect.Api;
 using CivicConnect.Api.Endpoints;
@@ -90,14 +89,6 @@ app.MapReportEndpoints();
 
 await DatabaseStartup.InitialiseAsync(app);
 app.Run();
-
-/// <summary>Version plus Git commit, e.g. "0.3.0+950f885...", stamped into the build by the .NET SDK.</summary>
-public static class ReleaseInfo
-{
-    public static string Version { get; } =
-        typeof(ReleaseInfo).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-        ?? "unknown";
-}
 
 // Lets the test project start the real app in memory (WebApplicationFactory<Program>).
 public partial class Program { }

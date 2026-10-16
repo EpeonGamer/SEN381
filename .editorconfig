@@ -1,0 +1,11 @@
+root = true
+
+[*.cs]
+# CA1848/CA1873 ask for source-generated LoggerMessage delegates. They are performance optimisations for
+# high-volume logging; CivicConnect logs a few events per request, so plain ILogger calls are kept for readability.
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1873.severity = none
+
+[tests/**/*.cs]
+# Test names use underscores as sentences (e.g. Only_staff_may_change_status) — the team's test naming convention.
+dotnet_diagnostic.CA1707.severity = none

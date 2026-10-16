@@ -35,7 +35,7 @@ public sealed class RoleVisibilityPolicy : IVisibilityPolicy
 
             ActorRole.Manager => VisibilityScope.All(ManagerActions),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(actor.Role))
+            _ => throw new ArgumentOutOfRangeException(nameof(actor), actor.Role, "Unknown actor role.")
         };
     }
 }

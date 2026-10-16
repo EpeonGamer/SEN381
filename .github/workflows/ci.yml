@@ -1,0 +1,74 @@
+# CivicConnect CI — quality gate for every push and every pull request into main.
+# Any failing step fails the run, and a failed run blocks the PR once "CI / build-and-test"
+# is a required status check in main's branch protection.
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history, for the secrets scan and the commit id in the build version
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore CivicConnect.sln
+
+      # Gate 1 — build + static analysis: compiler and .NET analyzer warnings are treated as errors.
+      - name: Build (warnings as errors)
+        run: dotnet build CivicConnect.sln -c Release --no-restore -warnaserror
+
+      # Gate 2 — automated regression: unit, black-box, SQLite integration, API integration and E2E tests.
+      - name: Test
+        run: >
+          dotnet test CivicConnect.sln -c Release --no-build
+          --logger "trx" --logger "console;verbosity=normal"
+          --collect:"XPlat Code Coverage"
+          --results-directory TestResults
+
+      - name: Upload test results and coverage
+        if: always() # keep the evidence for failed runs too
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
+
+      # Gate 3 — dependency security: fail if any direct or transitive NuGet package has a known vulnerability.
+      - name: Vulnerable dependency check
+        run: |
+          dotnet list CivicConnect.sln package --vulnerable --include-transitive | tee vulnerable.txt
+          if grep -q "has the following vulnerable packages" vulnerable.txt; then
+            echo "::error::Vulnerable NuGet packages found (see the log above)."
+            exit 1
+          fi
+
+  # Gate 4 — secrets: fail if a password, key or token appears anywhere in the Git history.
+  secrets-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
