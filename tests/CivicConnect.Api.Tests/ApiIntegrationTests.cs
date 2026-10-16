@@ -159,6 +159,22 @@ public class ApiIntegrationTests
         Assert.Equal(HttpStatusCode.Forbidden, staffAttempt.StatusCode);
     }
 
+    // API10 — DEF-10 regression: a malformed query value is the caller's mistake, so it must be a 400 in every
+    // environment. Development makes ASP.NET Core throw on bad input, which the error handler used to turn into a 500.
+    [Theory]
+    [InlineData("Testing", "/api/requests?limit=abc")]
+    [InlineData("Development", "/api/requests?limit=abc")]
+    [InlineData("Development", "/api/requests?overdue=maybe")]
+    public async Task API10_Malformed_query_values_get_400_not_500(string environment, string url)
+    {
+        using var api = ApiTarget.InProcess(environment: environment);
+        var requester = await api.LoginAsAsync("requester-1");
+
+        var response = await requester.GetAsync(url);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     // API9 — release identification (M3 staging): /health is public and reports the build version.
     [Fact]
     public async Task API9_Health_reports_status_and_release_version()

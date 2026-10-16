@@ -56,11 +56,17 @@ var app = builder.Build();
 // ---- 3. Middleware pipeline -----------------------------------------------------------------------
 app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
 {
-    // Core services throw UnauthorizedAccessException when the actor no longer exists or lacks access.
     var error = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-    var forbidden = error is UnauthorizedAccessException;
-    context.Response.StatusCode = forbidden ? 403 : 500;
-    await context.Response.WriteAsJsonAsync(new ApiError(forbidden ? "NotAuthorised" : "ServerError"));
+    var (status, code) = error switch
+    {
+        // Malformed input such as ?limit=abc: the caller's mistake, never a server error (DEF-10).
+        BadHttpRequestException bad => (bad.StatusCode, "InvalidInput"),
+        // Core services throw this when the actor no longer exists or lacks access.
+        UnauthorizedAccessException => (403, "NotAuthorised"),
+        _ => (500, "ServerError")
+    };
+    context.Response.StatusCode = status;
+    await context.Response.WriteAsJsonAsync(new ApiError(code));
 }));
 
 if (app.Configuration.GetValue("Security:RequireHttps", true))

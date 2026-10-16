@@ -33,7 +33,7 @@ public sealed class ApiTarget : IDisposable
 
     public bool IsDeployed => _deployedBaseUrl is not null;
 
-    private ApiTarget(Uri? deployedBaseUrl, string? deployedPassword, TimeProvider? clock = null)
+    private ApiTarget(Uri? deployedBaseUrl, string? deployedPassword, TimeProvider? clock = null, string environment = "Testing")
     {
         _deployedBaseUrl = deployedBaseUrl;
         if (IsDeployed)
@@ -45,7 +45,7 @@ public sealed class ApiTarget : IDisposable
         _password = Convert.ToBase64String(RandomNumberGenerator.GetBytes(18)); // fresh per test run
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
         {
-            host.UseEnvironment("Testing");
+            host.UseEnvironment(environment);
             if (clock is not null)
                 host.ConfigureServices(services => services.AddSingleton<TimeProvider>(clock));
             host.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -60,7 +60,9 @@ public sealed class ApiTarget : IDisposable
     }
 
     /// <summary>Always in-process: used by the API integration tests, which need a fresh database.</summary>
-    public static ApiTarget InProcess(TimeProvider? clock = null) => new(null, null, clock);
+    /// <param name="environment">ASP.NET Core environment; "Development" reproduces developer-only behaviour (DEF-10).</param>
+    public static ApiTarget InProcess(TimeProvider? clock = null, string environment = "Testing") =>
+        new(null, null, clock, environment);
 
     /// <summary>Deployed environment when configured, otherwise in-process. Used by the E2E tests.</summary>
     public static ApiTarget FromEnvironment()
