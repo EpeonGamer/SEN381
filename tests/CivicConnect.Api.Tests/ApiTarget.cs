@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Hosting;
@@ -16,7 +15,8 @@ namespace CivicConnect.Api.Tests;
 /// <list type="bullet">
 /// <item>In-process (default): the real Program, real middleware and a real temporary SQLite file.</item>
 /// <item>Deployed: when CIVICCONNECT_E2E_BASEURL is set (e.g. the staging URL), tests call that server over the
-/// network, logging in with CIVICCONNECT_E2E_PASSWORD. Only the E2E tests use this mode.</item>
+/// network, logging in with the per-account passwords in the file named by CIVICCONNECT_E2E_PASSWORDS_FILE
+/// (the staging Seed:PasswordsFile). Only the E2E tests use this mode.</item>
 /// </list>
 /// </summary>
 public sealed class ApiTarget : IDisposable
@@ -29,20 +29,25 @@ public sealed class ApiTarget : IDisposable
     private readonly WebApplicationFactory<Program>? _factory;
     private readonly Uri? _deployedBaseUrl;
     private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"civicconnect-api-test-{Guid.NewGuid():N}.db");
-    private readonly string _password;
+    private readonly string _passwordsFile;
+    private Dictionary<string, string>? _passwords;
 
     public bool IsDeployed => _deployedBaseUrl is not null;
 
-    private ApiTarget(Uri? deployedBaseUrl, string? deployedPassword, TimeProvider? clock = null, string environment = "Testing")
+    private ApiTarget(Uri? deployedBaseUrl, string? deployedPasswordsFile, TimeProvider? clock = null, string environment = "Testing",
+        IReadOnlyDictionary<string, string>? seedPasswords = null)
     {
         _deployedBaseUrl = deployedBaseUrl;
         if (IsDeployed)
         {
-            _password = deployedPassword ?? throw new InvalidOperationException("Set CIVICCONNECT_E2E_PASSWORD.");
+            _passwordsFile = deployedPasswordsFile ?? throw new InvalidOperationException("Set CIVICCONNECT_E2E_PASSWORDS_FILE.");
             return;
         }
 
-        _password = Convert.ToBase64String(RandomNumberGenerator.GetBytes(18)); // fresh per test run
+        // The app generates a fresh password per account into this file at startup, unless the test supplies some.
+        _passwordsFile = Path.ChangeExtension(_databasePath, ".passwords.json");
+        if (seedPasswords is not null)
+            File.WriteAllText(_passwordsFile, JsonSerializer.Serialize(seedPasswords));
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(host =>
         {
             host.UseEnvironment(environment);
@@ -52,7 +57,7 @@ public sealed class ApiTarget : IDisposable
             {
                 ["ConnectionStrings:CivicConnect"] = $"Data Source={_databasePath}",
                 ["Seed:Enabled"] = "true",
-                ["Seed:DemoPassword"] = _password,
+                ["Seed:PasswordsFile"] = _passwordsFile,
                 ["Security:RequireHttps"] = "false",       // the in-memory test server speaks plain HTTP
                 ["Security:LoginAttemptsPerMinute"] = "1000"
             }));
@@ -61,8 +66,10 @@ public sealed class ApiTarget : IDisposable
 
     /// <summary>Always in-process: used by the API integration tests, which need a fresh database.</summary>
     /// <param name="environment">ASP.NET Core environment; "Development" reproduces developer-only behaviour (DEF-10).</param>
-    public static ApiTarget InProcess(TimeProvider? clock = null, string environment = "Testing") =>
-        new(null, null, clock, environment);
+    /// <param name="seedPasswords">Pre-existing contents of the seed passwords file; accounts not listed get generated ones.</param>
+    public static ApiTarget InProcess(TimeProvider? clock = null, string environment = "Testing",
+        IReadOnlyDictionary<string, string>? seedPasswords = null) =>
+        new(null, null, clock, environment, seedPasswords);
 
     /// <summary>Deployed environment when configured, otherwise in-process. Used by the E2E tests.</summary>
     public static ApiTarget FromEnvironment()
@@ -70,7 +77,7 @@ public sealed class ApiTarget : IDisposable
         var url = Environment.GetEnvironmentVariable("CIVICCONNECT_E2E_BASEURL");
         return string.IsNullOrWhiteSpace(url)
             ? InProcess()
-            : new ApiTarget(new Uri(url), Environment.GetEnvironmentVariable("CIVICCONNECT_E2E_PASSWORD"));
+            : new ApiTarget(new Uri(url), Environment.GetEnvironmentVariable("CIVICCONNECT_E2E_PASSWORDS_FILE"));
     }
 
     /// <summary>A client with its own cookie jar and no login.</summary>
@@ -89,9 +96,18 @@ public sealed class ApiTarget : IDisposable
     public async Task<HttpClient> LoginAsAsync(string userId)
     {
         var client = Anonymous();
-        var response = await client.PostAsJsonAsync("/api/auth/login", new { userId, password = _password });
+        var response = await client.PostAsJsonAsync("/api/auth/login", new { userId, password = PasswordOf(userId) });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         return client;
+    }
+
+    /// <summary>The seeded password of a demo account, read from the seed passwords file (after the server started).</summary>
+    public string PasswordOf(string userId)
+    {
+        if (_factory is not null)
+            _ = _factory.Server; // make sure startup seeding has written the file
+        _passwords ??= JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(_passwordsFile))!;
+        return _passwords[userId];
     }
 
     public void Dispose()
@@ -99,6 +115,8 @@ public sealed class ApiTarget : IDisposable
         _factory?.Dispose();
         SqliteConnection.ClearAllPools();
         try { File.Delete(_databasePath); } catch (IOException) { /* temp file; ignore */ }
+        if (!IsDeployed)
+            File.Delete(_passwordsFile);
     }
 }
 
