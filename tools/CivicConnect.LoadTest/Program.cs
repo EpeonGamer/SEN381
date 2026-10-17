@@ -6,20 +6,18 @@
 // requester journey.
 //
 // Usage:  dotnet run --project tools/CivicConnect.LoadTest -c Release -- <baseUrl> <users> <seconds>
-// The demo passwords are read from the staging seed passwords file (deploy/staging/data/seed-passwords.json),
-// or from the file named by the CIVICCONNECT_PASSWORDS_FILE environment variable.
+// The demo password is read from the CIVICCONNECT_STAGING_PASSWORD environment variable.
 
 using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
 
 var baseUrl = new Uri(args.ElementAtOrDefault(0) ?? "http://localhost:5090");
 var users = int.Parse(args.ElementAtOrDefault(1) ?? "10", CultureInfo.InvariantCulture);
 var duration = TimeSpan.FromSeconds(int.Parse(args.ElementAtOrDefault(2) ?? "60", CultureInfo.InvariantCulture));
-var passwordsFile = Environment.GetEnvironmentVariable("CIVICCONNECT_PASSWORDS_FILE") ?? "deploy/staging/data/seed-passwords.json";
-var passwords = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(passwordsFile))!;
+var password = Environment.GetEnvironmentVariable("CIVICCONNECT_STAGING_PASSWORD")
+               ?? throw new InvalidOperationException("Set CIVICCONNECT_STAGING_PASSWORD.");
 
 var samples = new System.Collections.Concurrent.ConcurrentBag<Sample>();
 
@@ -28,8 +26,8 @@ var clients = new List<HttpClient>();
 for (var i = 0; i < users; i++)
 {
     var client = new HttpClient(new HttpClientHandler { CookieContainer = new CookieContainer() }) { BaseAddress = baseUrl };
-    var userId = i % 2 == 0 ? "requester-1" : "requester-2";
-    var login = await client.PostAsJsonAsync("/api/auth/login", new { userId, password = passwords[userId] });
+    var login = await client.PostAsJsonAsync("/api/auth/login",
+        new { userId = i % 2 == 0 ? "requester-1" : "requester-2", password });
     login.EnsureSuccessStatusCode();
     clients.Add(client);
 }
