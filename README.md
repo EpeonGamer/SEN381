@@ -10,14 +10,12 @@ The CivicConnect project is developed in order to assist civilians and streamlin
 ## Setup and run (Development)
 
 ```powershell
-# One-time: choose a demo password (8+ characters). It is stored in your user profile, never in the repo.
-dotnet user-secrets set "Seed:DemoPassword" "<your password>" --project src/CivicConnect.Api
-
 dotnet run --project src/CivicConnect.Api --launch-profile CivicConnect.Api
 ```
 
 Open http://localhost:5080 and log in as `requester-1`, `requester-2`, `staff-roads`, `staff-roads-2`,
-`staff-utilities` or `manager-1` with that password.
+`staff-utilities` or `manager-1`. Each account has its own password, generated on first run into
+`src/CivicConnect.Api/data/seed-passwords.json` (git-ignored; only hashes are stored in the database).
 
 ## Test
 
