@@ -24,20 +24,7 @@ dotnet test CivicConnect.sln
 ```
 
 This runs unit, black-box, SQLite integration, API integration and E2E tests. The same checks run in GitHub Actions
-(`.github/workflows/ci.yml`). Staging and rollback are described in `docs/deployment/STAGING.md`.
-
-### Load test (not in Test Explorer)
-
-The performance test (NFR-001) is a console tool, `tools/CivicConnect.LoadTest`, not an xUnit test: it needs a
-running server and measures response times rather than passing or failing (there is no numeric target). Start
-staging first (`docs/deployment/STAGING.md`), then:
-
-```powershell
-# <baseUrl> <concurrent users> <seconds>; logs in with the staging seed-passwords.json
-dotnet run --project tools/CivicConnect.LoadTest -c Release -- http://localhost:5090 10 60
-```
-
-Method, recorded results and interpretation: `docs/quality/PERFORMANCE_TEST.md` (raw output in `docs/quality/evidence/`).
+(`.github/workflows/ci.yml`). Staging, the load test and rollback are described in `docs/deployment/STAGING.md`.
 
 ## Project structure
 
