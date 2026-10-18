@@ -1282,4 +1282,9 @@ M1 described that CivicConnect would contain the following functionality: servic
 
 Native mobile apps, payments, inventory/asset management, hardware procurement and external request import are "out of scope" items and have remained that way.  M4 adds category filtering rather than catalogue administration.
 
+### 1.17.5 Completion and engineering reflection
+Using the PED method (Met = 1, Partially met = 0.5, Not met = 0), 20 criteria are met, 1 partially met and 2 not met. Completion is 20.5 / 23 = 89.1%; functional requirements are 15 / 15 = 100% and MUST requirements are 18.5 / 19 = 97.4%. The denominator retains all 23 approved criteria, including SHOULD requirements that have not been met. FR-012 is the judgement-sensitive item: treating it as partial because it lacks richer analytics would yield 20 / 23 = 87.0%.
+
+The final delivery achieves the main M1 objective: a traceable request journey from submission through controlled Staff handling to requester-visible outcomes and Manager oversight. M3 highlighted the differences between the Core methods and delivering usable features: reassignment and comments needed HTTP/UI integration and dedicated verification, while search functionality was still missing. M4 spear-headed those gaps. The remaining weaknesses are chiefly measurable quality and operationality . Future baselines should set performance thresholds and usability tasks at M1, plan availability evidence early, and reserve verification time for browser workflows and realistic deployment conditions. The final system is suitable for demonstrations but is not yet production-ready.
+
 
