@@ -12,7 +12,7 @@
 * **Trade-offs:** Will not have the formatting and tools of MS Word.
 * **Risks:** Team members may struggle with syntax.
 * **Evidence:** Master Brief Appendix C; team feedback.
-* **Later Consequence:** TBD
+* **Later Consequence:** Held for the whole project: the PED, ADRs, CRs and registers are Markdown in the repository, so every change is reviewed in pull requests and traceable in Git history.
 
 ## DEC-M1-02: Deferral of Technology-Stack Selection
 
@@ -24,7 +24,7 @@
 * **Trade-offs:** No early start on implementation/tooling familiarisation.
 * **Risks:** Late selection compresses time available in M2 for prototyping before M3 construction begins.
 * **Evidence:** M1 Brief Section 5; PED FEC-02, FEC-03.
-* **Later Consequence:** TBD
+* **Later Consequence:** The stack was chosen in M2 (DEC-M2-06, ADR-06). The recorded risk materialised in M3: with construction time compressed, PostgreSQL was replaced by SQLite for the release (ADR-07, TD-05).
 
 
 ## DEC-M2-05: Centralised Role-Based Request Visibility and Authorization

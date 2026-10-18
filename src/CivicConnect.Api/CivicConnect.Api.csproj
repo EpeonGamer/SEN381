@@ -6,7 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Release identifier. The SDK appends the Git commit (e.g. 0.3.0+950f885...), reported by /health. -->
     <Version>0.3.0</Version>
-    <UserSecretsId>e49d4433-d684-4d87-9506-3258821864e8</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

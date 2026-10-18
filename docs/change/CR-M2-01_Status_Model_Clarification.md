@@ -59,7 +59,7 @@
 - Reassigning a request to another staff member changes ownership but not status.
 - Rejection is only possible before assignment. Rejecting an already assigned request is deliberately excluded for now.
 - Every accepted transition produces an audit record in the same atomic operation (NFR-004, FEC-01).
-- "Overdue" is not a stored status. It is derived from request age or a due-date rule. That rule is not yet defined and is recorded as an open decision.
+- "Overdue" is not a stored status. It is derived from request age or a due-date rule. That rule is not yet defined and is recorded as an open decision. *(Resolved in M3 by CR-M3-02: open and more than 72 hours since submission.)*
 
 ## 4. Baseline Preservation and Amended Wording
 

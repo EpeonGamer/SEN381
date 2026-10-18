@@ -757,7 +757,7 @@ All of the M2 "deferred integration" items above are implemented in M3:
 
 ## 1.14. Deployment, Operations & SRE
 
-*(Production deployment to be baselined in Milestone 4.)*
+**Final deployment state (M4): staging, by a no-go decision** (§1.17.6). Staging can also run over HTTPS with `start.ps1 -Https` (development certificate, H1).
 
 **M3 simulated staging:** a published Release build per commit runs in the `Staging` environment on port 5090. It has its own
 database and gets its secrets from environment variables. `/health` reports the deployed commit. Deploy, verify and
@@ -777,6 +777,10 @@ rollback steps, configuration differences from production, and the monitoring li
 * **SEN381 Milestone 3 Brief** — Controlled Construction, Integration, Quality & Release Readiness.
 * **ADR-07 — SQLite Persistence Adapter for the M3 Release Candidate** (CivicConnect, M3, 2026-10-15).
 * **ADR-08 — API Authentication for the M3 Release Candidate** (CivicConnect, M3, 2026-10-16).
+* **CR-M3-02 — Overdue Request Rule** (CivicConnect, M3, 2026-10-16).
+* **SEN381 Final Project (Milestone 4) Brief** — Finalise, Consolidate & Conclude.
+* **DEC-M4-01 — Only the Current Assignee May Resolve a Request** ([Engineering Decision Log](../decisions/ENG_DECISION_LOG.md), M4, 2026-10-18).
+* M4 records: [AI Usage Register](../AI_USAGE.md) (AI-M4-01 to AI-M4-06), [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md) (RISK-M4-01/02).
 * M3 registers and evidence: [Defect Register](../quality/DEFECT_REGISTER.md), [Technical Debt Register](../risk/TECH_DEBT_REGISTER.md), [Test Evidence](../quality/TEST_EVIDENCE.md), [Performance Test](../quality/PERFORMANCE_TEST.md), [Staging](../deployment/STAGING.md), [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md), [AI Usage Register](../AI_USAGE.md).
 * Indeed Editorial Team. Business value. Available at: https://www.indeed.com/career-advice/career-development/business-value (Accessed 9 September 2026).
 * ProjectManager. How to write a project scope statement. Available at: https://www.projectmanager.com/blog/project-scope-statement (Accessed 9 September 2026).

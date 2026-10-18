@@ -84,7 +84,7 @@ Concrete C# form (namespace `CivicConnect.Core.Lifecycle`):
 | `TransitionRules` | Holds the allowed transitions and required conditions |
 | `TransitionService` | Applies rules, authorisation and atomic save with audit |
 | `IRequestRepository` | Persistence boundary. Atomic save plus conflict detection. |
-| PostgreSQL repository (data layer, not yet written) | Implements `IRequestRepository` using a database transaction |
+| PostgreSQL repository (data layer, not yet written; M3 implemented `SqliteRequestRepository` instead, ADR-07) | Implements `IRequestRepository` using a database transaction |
 | Request and audit entities | Store current status and lifecycle history (data model owned by the data/persistence ADR) |
 | UI and API handlers | Call `TransitionService` only. They never set status directly. |
 
