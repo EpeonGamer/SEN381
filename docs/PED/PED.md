@@ -1244,3 +1244,19 @@ Source: `tests/CivicConnect.Api.Tests/OverdueApiTests.cs`.
 | `TEST_EVIDENCE.md` | 72 baseline + 13 overdue + 3 DEF-10 cases = **88**; **19/19 exploratory checks** plus isolated browser smoke evidence. Historical coverage/load figures remain labelled. |
 
 **Documentation boundary:** `RELEASE_EVIDENCE_SUMMARY.md` supplies the current conditional decision and 88-case result. Older PED/CR-M3-02/DEF-07 passages still cite 72 or 85 cases; these are historical stages. Statements that comments/reassignment are wholly untested are also stale: the overdue SQLite journey checks their successful path, while dedicated negative/UI coverage remains incomplete.
+
+### 1.17 Milestone 4
+
+### 1.17.1. Milestone One scope to Milestone Four final delivery reflection
+M1 described that CivicConnect would contain the following functionality: service-request lifecycle: authenticated request submission, categorisation, status and history visibility, controlled Staff responsibility and updates, and Manager oversight. Access control, input validation, stored ownership/history and privacy were cross-cutting requirements. The baseline contains 15 functional requirements and 8 non-functional requirements. Milestone1 deliberately deferred the technology choice to M2.
+
+## 1.17.2 Scope comparisons with final delivery
+
+| M1 scope | Final delivery | Evidence and qualification |
+|---|---|---|
+| Requesters submit, categorise and can filter requests, see their own status/history and receive feedback | Authenticated request submission stores owner, catalogue, category and initial Unassigned status. List/detail show current status, comments and history, including rejection reasons and resolution notes. | FR-002–005/007; `RequestService`, `RequestEndpoints`, SQLite repository; `BlackBoxTests`, `ApiIntegrationTests`, `EndToEndTests`. Feedback is in-app; external notifications remain deferred. |
+| Staff see relevant requests, search/filter/sort and can see request full details |  M4 adds text/identifier search and category filtering in the UI alongside category sorting and pagination (restricted to 5 requests showing per page). | FR-006/008; `VisibilityScope`, parameterised SQL, `RefinementApiTests.Combined_filters_scope_pagination_and_counts_match`. Search also matches title, description and assignee. |
+| Staff assign/accept responsibility, update status, record comments and close requests | Initial assignment and assignment to another eligible Staff member are supported. M4 exposes reassignment in HTTP/UI with version checks; comments store author/content; transitions and responsibility changes retain audit history. Resolution requires the current assignee and a note that is not empty. | FR-009–011/015; `ReassignmentTests`, `ResolutionOwnershipTests`, `RefinementApiTests`; transactional rollback and stale-version checks. Automated E2E covers the API journey; browser interaction is manually verified, not automated. |
+| Managers see activity, lifecycle counts and category/status filters | Manager-only counts and a filtered request list show open, overdue, rejected and resolved work. Counts respect the same filters without being limited by list pagination. | FR-012–014; `ReportEndpoints`, `OverdueTests`, `OverdueApiTests`, `Combined_filters_scope_pagination_and_counts_match`.  |
+| Role-based access, validation, persistence and privacy | Central visibility policy, authenticated API, PBKDF2 password hashes, scoped database queries, catalogue validation and atomic status/audit writes are implemented. M4 introduces unique generated seed passwords and optional HTTPS staging. | FR-001; NFR-002/004/005/007; authorization, SQLite integration and API tests. |
+
