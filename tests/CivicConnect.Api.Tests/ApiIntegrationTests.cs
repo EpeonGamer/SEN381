@@ -1,5 +1,6 @@
 using System.Net;
 using CivicConnect.Api.Endpoints;
+using CivicConnect.Api.Infrastructure;
 using CivicConnect.Core.Lifecycle;
 
 namespace CivicConnect.Api.Tests;
@@ -187,5 +188,43 @@ public class ApiIntegrationTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("Healthy", body["status"]);
         Assert.StartsWith("0.3.0", body["version"]);
+    }
+
+    // API11 — NFR-002, TD-06/RISK-M3-01: every seeded account has its own password, and one account's
+    // password does not open another account.
+    [Fact]
+    public async Task API11_Each_seeded_account_has_its_own_password()
+    {
+        using var api = ApiTarget.InProcess();
+        var users = DatabaseStartup.DemoUsers.Select(user => user.Id).ToArray();
+
+        var passwords = users.Select(api.PasswordOf).ToArray();
+        Assert.Equal(users.Length, passwords.Distinct().Count());
+        foreach (var user in users)
+            await api.LoginAsAsync(user);
+
+        var crossLogin = await api.Anonymous().PostJsonAsync("/api/auth/login",
+            new { userId = "manager-1", password = api.PasswordOf("requester-1") });
+        Assert.Equal(HttpStatusCode.Unauthorized, crossLogin.StatusCode);
+    }
+
+    // API12 — NFR-002, TD-06: a configured password that is shared or shorter than 8 characters is refused
+    // (that account cannot log in at all) instead of being accepted; other accounts are unaffected.
+    [Fact]
+    public async Task API12_Shared_or_short_seed_passwords_are_refused()
+    {
+        using var api = ApiTarget.InProcess(seedPasswords: new Dictionary<string, string>
+        {
+            ["requester-1"] = "same-password-1",
+            ["requester-2"] = "same-password-1",
+            ["staff-roads"] = "short",
+        });
+
+        foreach (var (user, password) in new[] { ("requester-1", "same-password-1"), ("requester-2", "same-password-1"), ("staff-roads", "short") })
+        {
+            var login = await api.Anonymous().PostJsonAsync("/api/auth/login", new { userId = user, password });
+            Assert.Equal(HttpStatusCode.Unauthorized, login.StatusCode);
+        }
+        await api.LoginAsAsync("manager-1"); // generated password still works
     }
 }

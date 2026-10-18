@@ -40,6 +40,10 @@ public sealed class SqliteCredentialStore
             ON CONFLICT(user_id) DO UPDATE SET password_hash = excluded.password_hash
             """, ("$id", userId), ("$hash", passwordHash));
 
+    /// <summary>Deletes the stored hash, so the user can no longer log in.</summary>
+    public Task RemovePasswordHashAsync(string userId) =>
+        ExecuteAsync("DELETE FROM user_credentials WHERE user_id = $id", ("$id", userId));
+
     private async Task ExecuteAsync(string sql, params (string Name, object Value)[] parameters)
     {
         await using var connection = new SqliteConnection(_connectionString);
