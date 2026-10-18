@@ -1,4 +1,39 @@
-# Test Evidence (M3)
+# Test Evidence (M3, with M4 additions)
+
+> M4 entries are added at the top; the M3 records below are unchanged.
+
+## M4 final build: automated run and cross-browser check (2026-10-18)
+
+- **Full automated run: 109/109 passed** (Core 68, API 41), strict build with `-warnaserror`, commit `bdb89db` on
+  `m4-refinement` (RTM evidence key **R2**). New since M3: Lethebe's `RefinementApiTests`, `ResolutionOwnershipTests` and
+  `ReassignmentTests` (search, filters, sorting, comments, reassignment, assignee-only resolution) and `API11`/`API12`
+  (one password per seeded account).
+- **Cross-browser check (NFR-006):** manual check by Kasper of the Development build at `http://localhost:5080`.
+
+  | Browser | Version | Sign in | Filtering | Navigation |
+  |---|---|---|---|---|
+  | Mozilla Firefox | 158.0 | Pass | Pass | Pass |
+  | Microsoft Edge | 155.0.4283.62 | Pass | Pass | Pass |
+  | Google Chrome | 154.0.8037.100 | Pass | Pass | Pass |
+
+  Interpretation: the UI works on the current stable versions of the three main desktop browsers. Limits: manual, one
+  run, desktop only (no mobile or Safari), and only the journeys listed were checked; the browser UI has no automated
+  tests (TD-09).
+- **HTTPS check (NFR-002, TD-07):** staging build `5fce62d` run with `Security:RequireHttps=true` on
+  https://localhost:5091 using the trusted .NET development certificate (later repeatable with `start.ps1 -Https`,
+  checked again on release `ec453b5`).
+
+  | Check | Expected | Result |
+  |---|---|---|
+  | `GET https://localhost:5091/health` | 200, version and Staging | Pass: `0.3.0+5fce62d…`, Staging |
+  | `GET http://localhost:5090/health` and `/api/requests` | 307 redirect to the HTTPS address | Pass |
+  | Login over HTTPS: `Set-Cookie` flags | `secure`, `httponly`, `samesite=strict` | Pass: all three present |
+  | `EndToEndTests` (E2E1, E2E2) against `https://localhost:5091` | Pass | Pass: 2/2 |
+  | `Strict-Transport-Security` header | Present outside localhost | Absent: ASP.NET Core excludes `localhost` from HSTS by design |
+  | Default `start.ps1` (no `-Https`) with a leftover `Security__RequireHttps=true` | Plain HTTP, login works | Pass: no redirect, cookie without `secure`, authenticated call 200 |
+
+  Interpretation: HTTPS enforcement, the redirect and the Secure cookie work as configured for Production. Limits: a
+  development certificate trusted on one machine, not a public CA certificate; HSTS cannot be observed on localhost.
 
 ## DEF-10 fix and overdue exploratory test (2026-10-16)
 

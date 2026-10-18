@@ -12,7 +12,7 @@
 * **Trade-offs:** Will not have the formatting and tools of MS Word.
 * **Risks:** Team members may struggle with syntax.
 * **Evidence:** Master Brief Appendix C; team feedback.
-* **Later Consequence:** TBD
+* **Later Consequence:** Held for the whole project: the PED, ADRs, CRs and registers are Markdown in the repository, so every change is reviewed in pull requests and traceable in Git history.
 
 ## DEC-M1-02: Deferral of Technology-Stack Selection
 
@@ -24,7 +24,7 @@
 * **Trade-offs:** No early start on implementation/tooling familiarisation.
 * **Risks:** Late selection compresses time available in M2 for prototyping before M3 construction begins.
 * **Evidence:** M1 Brief Section 5; PED FEC-02, FEC-03.
-* **Later Consequence:** TBD
+* **Later Consequence:** The stack was chosen in M2 (DEC-M2-06, ADR-06). The recorded risk materialised in M3: with construction time compressed, PostgreSQL was replaced by SQLite for the release (ADR-07, TD-05).
 
 
 ## DEC-M2-05: Centralised Role-Based Request Visibility and Authorization
@@ -51,3 +51,17 @@
 * **Risks:** Potential performance and cost parameters if the technology stack changes.
 * **Evidence:** ADR-06; StackDiagram; PED 1.12; CivicConnect A2 design quality and Design Pattern research.
 * **Later Consequence:** Should there be a change in technology stack used, the software to implement the stack will also be required to change.
+
+
+## DEC-M4-01: Only the Current Assignee May Resolve a Request
+
+* **Date:** 2026-10-18
+* **Status:** Accepted 2026-10-18 (Kasper reviewed the decision against Lethebe's implementation and tests).
+* **Description:** A request in Assigned status can be resolved only by the staff member it is currently assigned to. Any other in-scope Staff member is refused with `NotAssigned` (403) and must first reassign the request to themselves.
+* **Context & Constraints:** Up to M3, any Staff member whose groups covered the request's category could resolve it (FR-011, CR-M2-01). With reassignment exposed in M4 (FR-009), the stored assignee is the accountable owner, and letting someone else close the request would leave the audit trail naming a different person than the one responsible. The approved transitions (CR-M2-01 §3) must not change.
+* **Alternatives:** Keep resolution open to all in-scope Staff; allow it but record "resolved on behalf of"; restrict to the assignee (chosen).
+* **Decision & Rationale:** Restrict to the assignee. It matches the stakeholder need for clear responsibility and accountability (§1.4) and keeps assignment history and resolution consistent. It narrows *who* may perform an existing transition; it adds no status or transition, so no change request is required.
+* **Trade-offs:** An absent assignee blocks resolution until someone reassigns the request (one extra step).
+* **Risks:** Low. Reassignment uses the version check, so a stale reassignment cannot silently override a newer one.
+* **Evidence:** `TransitionService` (`NotAssigned` check); `ResolutionOwnershipTests` (non-assignee refused with nothing changed, must reassign to self, former assignee refused, current assignee succeeds); PED §1.5.4 FR-011. Proposed and implemented by Lethebe in commit `2c82f1b`.
+* **Later Consequence:** Resolution and assignment history now always name the same accountable person. Operational effect to review if real use shows frequent reassign-before-resolve steps.

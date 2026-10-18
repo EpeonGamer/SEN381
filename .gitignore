@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Generated demo-account passwords (Seed:PasswordsFile); local secrets, never committed
+seed-passwords*.json
+
 # User-specific files
 *.rsuser
 *.suo

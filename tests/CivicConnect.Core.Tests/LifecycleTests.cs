@@ -187,7 +187,8 @@ public class LifecycleTests
 
         public Task<ServiceRequest?> GetAsync(Guid requestId, CancellationToken cancellationToken = default) =>
             Task.FromResult(_status is null ? null : new ServiceRequest(requestId, "requester-1", "General", "Title", "Description",
-                _status.Value, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
+                _status.Value, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow,
+                AssigneeId: _status == RequestStatus.Assigned ? "staff-1" : null));
 
         public Task<ActorContext?> GetActorAsync(string actorId, CancellationToken cancellationToken = default) =>
             Task.FromResult<ActorContext?>(actorId == Actor.Id ? Actor : Actor with { Id = actorId, Role = ActorRole.Staff });

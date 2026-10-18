@@ -21,7 +21,7 @@
     - [1.5.1. Functional Requirements](#151-functional-requirements)
     - [1.5.2. Non-Functional Requirements](#152-non-functional-requirements)
     - [1.5.3. Requirements Traceability Matrix (M1 Baseline / M2 Update)](#153-requirements-traceability-matrix-m1-baseline--m2-update)
-    - [1.5.4. RTM — M3 Verification Trace](#154-rtm--m3-verification-trace)
+    - [1.5.4. RTM — M3 Verification Trace and Final Status (M4)](#154-rtm--m3-verification-trace-and-final-status-m4)
   - [1.6. Project Scope, Boundaries \& Constraints](#16-project-scope-boundaries--constraints)
     - [1.6.1. In Scope](#161-in-scope)
     - [1.6.2. Out of Scope](#162-out-of-scope)
@@ -29,6 +29,7 @@
     - [1.6.4. Scope Acceptance Rules](#164-scope-acceptance-rules)
     - [1.6.5. Project Constraints](#165-project-constraints)
     - [1.6.6. System Constraints](#166-system-constraints)
+    - [1.6.7. Final Scope Completion (M4)](#167-final-scope-completion-m4)
   - [1.7. Stakeholder Identification \& Governance](#17-stakeholder-identification--governance)
   - [1.8. Team Working Agreement](#18-team-working-agreement)
   - [1.9. Forward Engineering Considerations (FEC)](#19-forward-engineering-considerations-fec)
@@ -50,6 +51,13 @@
   - [1.14. Deployment, Operations \& SRE](#114-deployment-operations--sre)
   - [1.15. References \& Evidence Traceability](#115-references--evidence-traceability)
   - [1.16. Milestone 3 — Construction, Quality \& Release Readiness (Evidence Index)](#116-milestone-3--construction-quality--release-readiness-evidence-index)
+  - [1.17. Milestone 4](#117-milestone-4)
+    - [1.17.1. Milestone One scope to Milestone Four final delivery reflection](#1171-milestone-one-scope-to-milestone-four-final-delivery-reflection)
+    - [1.17.2. Scope comparisons with final delivery](#1172-scope-comparisons-with-final-delivery)
+    - [1.17.3. What changed and why](#1173-what-changed-and-why)
+    - [1.17.4. What remains incomplete](#1174-what-remains-incomplete)
+    - [1.17.5. Completion and engineering reflection](#1175-completion-and-engineering-reflection)
+    - [1.17.6. Final Release Decision](#1176-final-release-decision)
 
 ---
 
@@ -178,37 +186,43 @@ The quality drivers used are the following: D1 integrity and audit; D2 access an
 | NFR-007 | Project Master Brief/projectmanagement.com | The system shall prevent requesters from viewing other requests that don't belong to them unless authorised | MUST | URL and API testing across two accounts | D2 | Authorization policy / request visibility | Each request is linked to its owner; Staff access is additionally constrained by group/request-type scope | Row/list scope enforced server-side | PostgreSQL ownership FK proposed; API enforcement pending | `VisibilityScope` and `RoleVisibilityPolicy` implemented in Core | 29 Core tests passing; cross-account URL/API tests planned at application boundary | In Development | ADR-05; RISK-001; RISK-M2-04 |
 | NFR-008 | Project Master Brief/projectmanagement.com | Users should be allowed to complete service request functions without requiring any assistance | SHOULD | Completion rate and time taken to complete service request tests | D2 | User interface and workdlow | Clear status/feedback data supports task | Accessible forms and feedback | Front-end stack pending | Planned | defined usability task and timed study | M1 approved; M2 proposed; not implemented | UI/design ADR pending |
 
-### 1.5.4. RTM — M3 Verification Trace
+### 1.5.4. RTM — M3 Verification Trace and Final Status (M4)
 
 The M1/M2 matrix above is preserved unchanged as the earlier baseline. This table continues it for M3:
 **stakeholder need → requirement → acceptance criterion → implementation → test case(s) → expected result →
 execution evidence → defect/status**. The first draft of this trace (rows, acceptance criteria and gap analysis)
 was produced by Member One during the M3 review. Statuses were then updated as implementation and test evidence became available.
 
-**Execution evidence key:** **R1** = full automated run, 72/72 passed, commit `c5778f9`, 2026-10-16 ([test evidence](../quality/TEST_EVIDENCE.md)), repeated by CI on every push. **S1** = E2E run against staging release `c5778f9` ([staging](../deployment/STAGING.md)). **P1** = [load test](../quality/PERFORMANCE_TEST.md).
+**M4 final status.** The M3 columns are unchanged; the last column gives each criterion's final status (Met / Partially met /
+Not met) on the M4 build. NFR-003, NFR-006 and NFR-008 were added so every M1 requirement has a final status (input to §1.6.7).
 
-| Req | Stakeholder need | Acceptance criterion | Implementation | Test case(s) | Expected result | Evidence | Defect / status |
-|---|---|---|---|---|---|---|---|
-| FR-001 | Stakeholders' actions are limited to their role | Requesters and Managers cannot perform Staff lifecycle actions; only Requesters submit | `RoleVisibilityPolicy`, `TransitionService`, `RequestService`, API fallback policy | `Only_staff_may_change_status`; `Staff_can_change_status_when_authorized_by_the_policy`; `Manager_can_view_requests_but_cannot_change_status_through_this_policy`; `DT1`; `EP2`; `API5` | Staff in scope succeeds; Requester/Manager refused (403); nothing saved | R1 | **Verified** (Core + HTTP) |
-| FR-002 | Requesters can submit a request | Valid input stores a request linked to the requester with status Unassigned; invalid input is refused and stores nothing | `RequestService.SubmitAsync`, `POST /api/requests`, UI form | `Submitted_request_is_stored_with_owner_category_and_initial_status`; `EP1`; `API3`; `API6` (BVA); `E2E1` | 201 + Unassigned; blank/over-length/unknown category → 400 | R1, S1 | **Verified** |
-| FR-003 | Requests are categorised from a controlled list | Category must exist in the catalogue; stored with the request | `categories` table + FK, `GET /api/categories`, catalogue spelling (DEF-08) | `EP1` (unknown, mixed-case); `API3` | Unknown → `InvalidCategory`; `roads` stored as `Roads` | R1 | **Verified**; DEF-08 closed |
-| FR-004 | Requesters see the current status of their requests | The requester sees the correct stored status of their own request | `GET /api/requests/{id}`, UI list/detail | `D1`; `ST1`; `E2E1`; `E2E2` | Own request returned with current status (Unassigned → Resolved/Rejected) | R1, S1 | **Verified** |
-| FR-005 | Requesters see their request history/list | List contains only the requester's requests; empty list when none | `VisibilityScope` filtered in SQL, `GET /api/requests` | `Requester_cannot_read_another_requesters_request_from_the_database`; `D2`; `API4` | Others' requests excluded; no requests → `[]` | R1 | **Verified** |
-| FR-006 | Staff locate requests within their scope | Search by identifier, filter and sort by category, limited to permitted types | Scope filter in SQL; `category`, `status`, `sortByCategory` query parameters | `Staff_only_see_requests_in_their_groups_categories`; `Staff_visibility_is_the_union_of_all_group_request_types` | Only permitted categories visible | R1 | **Partially verified**: scope verified; filter/sort parameters exist but have no dedicated test; free-text search not implemented |
-| FR-007 | Requesters receive meaningful feedback | Rejection requires a non-blank reason; the requester can see status and reason | `TransitionRules`, `TransitionService`, history in request detail, UI history list | `Reject_without_reason_is_refused_and_nothing_is_saved`; `Rejection_audit_records_server_time_actor_and_only_relevant_information`; `API7`; `E2E2` | Blank reason → `MissingReason`, nothing saved; requester sees Rejected + reason | R1, S1 | **Verified** (in-app feedback; no notifications, as per scope) |
-| FR-008 | Staff must not access requests outside their permissions | Staff visibility is the union of their groups' request types, enforced for detail and changes | `StaffGroup`, `VisibilityScope`, SQL filter, `TransitionService` `CanView` check | `Staff_visibility_is_the_union_of_all_group_request_types`; `Staff_only_see_requests_in_their_groups_categories`; `Staff_outside_request_category_cannot_change_status`; `DT1` R3 | Out-of-scope request invisible and not changeable | R1 (mutation-checked) | **Verified**; DEF-01 closed |
-| FR-009 | Controlled allocation of responsibility | Assignment from Unassigned needs an assignee who is in-scope Staff | `TransitionRules`, `TransitionService` assignee check, `assignment_history` | `Assign_succeeds_and_saves_once`; `DT1`; `ST1`; `E2E1` | Valid assignment saved with assignee; others refused | R1, S1 | **Verified**; reassignment (`RequestService.ReassignAsync`) implemented but not exposed or tested |
-| FR-010 | Material actions/comments are recorded | Comments saved with author; empty comments rejected; every transition audited | `transition_history`, `request_comments`, `POST /api/requests/{id}/comments` | Transition audit: `Rejection_audit_records_...`, `Failed_audit_write_rolls_back_the_status_change` | Audit entry per transition | R1 | **Partially verified**: transition audit verified; comment endpoint untested |
-| FR-011 | Requests close only under defined conditions | Only Assigned can be Resolved, with a resolution note; requester sees Resolved | `RequestStatus`, `TransitionRules`, `TransitionService` | `Resolve_without_note_is_refused`; `Cannot_resolve_an_unassigned_request`; `ST1`; `E2E1` | Missing note / Unassigned → refused; valid resolve persisted and visible | R1, S1 | **Verified** |
-| FR-012 | Managers see service activity | Overview without exposing data outside the approved scope | `GET /api/reports/counts` (Manager role), Manager scope | `Manager_can_view_requests_but_cannot_change_status_through_this_policy`; `API8` | Manager gets counts; Staff 403 | R1 | **Partially verified**: counts only; no richer activity view |
-| FR-013 | Managers see counts by lifecycle condition | Open, overdue and resolved counts; overdue strictly after 72 hours while open (CR-M3-02) | `OverduePolicy`, `SqliteRequestRepository.GetCountsAsync`, summary/detail API, deadline filter and Manager count UI | `API8`; `OverdueTests`; `OverdueApiTests` | Exact deadline not overdue; +1 tick overdue; terminal states excluded; scope/filters preserved | R1; `docs/quality/TEST_EVIDENCE.md` overdue follow-up | **Verified** by automated Core/SQLite/HTTP cases and a 19-check exploratory run; DEF-07 closed; CR-M3-02 accepted |
-| FR-014 | Managers filter by category/status | Filtered counts/lists within the Manager's scope | `category`/`status` parameters on counts and list | — | — | — | **Implemented, unverified** (no dedicated test) |
-| FR-015 | Consistent lifecycle (amended by CR-M2-01) | Only Unassigned→Assigned, Unassigned→Rejected, Assigned→Resolved; all others refused, nothing changed | `RequestStatus`, `TransitionRules`, `TransitionService` | `Table_allows_only_the_three_approved_transitions` (16 pairs); `Terminal_requests_cannot_be_assigned_again`; `ST1`; `API7` | Exactly 3 of 16 pairs allowed; invalid → `InvalidTransition`/409 | R1 | **Verified**; DEF-02 closed (wording reconciled) |
-| NFR-001 | Acceptable response under normal load | No numeric target set | Indexes, WAL mode | Load test 1 and 10 users | Compared with the 1-user baseline (no formal target) | P1 | **Measured, no target**; DEF-09 mitigated |
-| NFR-002 | Secure credentials and transport | No plaintext passwords; HTTPS enforced | PBKDF2 hashes (ADR-08); `RequireHttps` in Production | `API2` (login); code review of `PasswordHasher` | Hashes only; HTTPS on in Production config | R1 | **Partially verified**: hashing verified; HTTPS not exercised (TD-07) |
-| NFR-004 | Reliable updates | Status + audit saved atomically; stale updates do not overwrite | `SaveTransitionAsync` transaction + version check | `Failed_audit_write_rolls_back_the_status_change`; `Stale_transition_is_reported_as_conflict_and_changes_nothing`; `Concurrent_change_is_reported_as_conflict`; `Storage_failure_propagates_and_is_not_reported_as_success` | Rollback leaves status/version/history unchanged; stale save returns conflict | R1 | **Verified** on SQLite (not PostgreSQL) |
-| NFR-005 | Unauthenticated users cannot access information | Protected endpoints reject unauthenticated callers | Cookie authentication, fallback authorization policy | `API1` | 401 on all protected endpoints | R1 | **Verified** |
-| NFR-007 | Requester privacy | Requesters cannot access other requesters' records | Owner scope in SQL; 404 for others' ids | `Requester_can_view_only_their_own_requests`; `Requester_cannot_read_another_requesters_request_from_the_database`; `API4` | Detail 404, list excludes | R1 | **Verified** (Core, database and HTTP) |
+**Execution evidence key:** **R1** = full automated run, 72/72 passed, commit `c5778f9`, 2026-10-16 ([test evidence](../quality/TEST_EVIDENCE.md)), repeated by CI on every push. **S1** = E2E run against staging release `c5778f9` ([staging](../deployment/STAGING.md)). **P1** = [load test](../quality/PERFORMANCE_TEST.md). **R2** = M4 build `bdb89db`, 109/109 passed, strict build, 2026-10-18. **B1** = manual cross-browser check. **H1** = HTTPS check on staging `5fce62d` (both in [test evidence](../quality/TEST_EVIDENCE.md)).
+
+| Req | Stakeholder need | Acceptance criterion | Implementation | Test case(s) | Expected result | Evidence | Defect / status | Final status (M4) |
+|---|---|---|---|---|---|---|---|---|
+| FR-001 | Stakeholders' actions are limited to their role | Requesters and Managers cannot perform Staff lifecycle actions; only Requesters submit | `RoleVisibilityPolicy`, `TransitionService`, `RequestService`, API fallback policy | `Only_staff_may_change_status`; `Staff_can_change_status_when_authorized_by_the_policy`; `Manager_can_view_requests_but_cannot_change_status_through_this_policy`; `DT1`; `EP2`; `API5` | Staff in scope succeeds; Requester/Manager refused (403); nothing saved | R1 | **Verified** (Core + HTTP) | **Met.** Manager screens no longer offer lifecycle actions and the API refuses them (`Managers_cannot_call_any_operational_transition`). R2 |
+| FR-002 | Requesters can submit a request | Valid input stores a request linked to the requester with status Unassigned; invalid input is refused and stores nothing | `RequestService.SubmitAsync`, `POST /api/requests`, UI form | `Submitted_request_is_stored_with_owner_category_and_initial_status`; `EP1`; `API3`; `API6` (BVA); `E2E1` | 201 + Unassigned; blank/over-length/unknown category → 400 | R1, S1 | **Verified** | **Met.** Unchanged since M3. R2 |
+| FR-003 | Requests are categorised from a controlled list | Category must exist in the catalogue; stored with the request | `categories` table + FK, `GET /api/categories`, catalogue spelling (DEF-08) | `EP1` (unknown, mixed-case); `API3` | Unknown → `InvalidCategory`; `roads` stored as `Roads` | R1 | **Verified**; DEF-08 closed | **Met.** Unchanged since M3. R2 |
+| FR-004 | Requesters see the current status of their requests | The requester sees the correct stored status of their own request | `GET /api/requests/{id}`, UI list/detail | `D1`; `ST1`; `E2E1`; `E2E2` | Own request returned with current status (Unassigned → Resolved/Rejected) | R1, S1 | **Verified** | **Met.** Unchanged since M3. R2 |
+| FR-005 | Requesters see their request history/list | List contains only the requester's requests; empty list when none | `VisibilityScope` filtered in SQL, `GET /api/requests` | `Requester_cannot_read_another_requesters_request_from_the_database`; `D2`; `API4` | Others' requests excluded; no requests → `[]` | R1 | **Verified** | **Met.** Unchanged since M3. R2 |
+| FR-006 | Staff locate requests within their scope | Search by identifier, filter and sort by category, limited to permitted types | Scope filter in SQL; `category`, `status`, `sortByCategory` query parameters | `Staff_only_see_requests_in_their_groups_categories`; `Staff_visibility_is_the_union_of_all_group_request_types` | Only permitted categories visible | R1 | **Partially verified**: scope verified; filter/sort parameters exist but have no dedicated test; free-text search not implemented | **Met.** M4 adds identifier/text search (UI and `search` parameter), tested with filters, sorting, scope, an SQL-injection string and the length limit (`Combined_filters_scope_pagination_and_counts_match`). R2 |
+| FR-007 | Requesters receive meaningful feedback | Rejection requires a non-blank reason; the requester can see status and reason | `TransitionRules`, `TransitionService`, history in request detail, UI history list | `Reject_without_reason_is_refused_and_nothing_is_saved`; `Rejection_audit_records_server_time_actor_and_only_relevant_information`; `API7`; `E2E2` | Blank reason → `MissingReason`, nothing saved; requester sees Rejected + reason | R1, S1 | **Verified** (in-app feedback; no notifications, as per scope) | **Met.** Unchanged since M3. R2 |
+| FR-008 | Staff must not access requests outside their permissions | Staff visibility is the union of their groups' request types, enforced for detail and changes | `StaffGroup`, `VisibilityScope`, SQL filter, `TransitionService` `CanView` check | `Staff_visibility_is_the_union_of_all_group_request_types`; `Staff_only_see_requests_in_their_groups_categories`; `Staff_outside_request_category_cannot_change_status`; `DT1` R3 | Out-of-scope request invisible and not changeable | R1 (mutation-checked) | **Verified**; DEF-01 closed | **Met.** Unchanged since M3. R2 |
+| FR-009 | Controlled allocation of responsibility | Assignment from Unassigned needs an assignee who is in-scope Staff | `TransitionRules`, `TransitionService` assignee check, `assignment_history` | `Assign_succeeds_and_saves_once`; `DT1`; `ST1`; `E2E1` | Valid assignment saved with assignee; others refused | R1, S1 | **Verified**; reassignment (`RequestService.ReassignAsync`) implemented but not exposed or tested | **Met.** M4 exposes reassignment (`/eligible-assignees`, `/reassign` with version check), tested by `RefinementApiTests` and `ReassignmentTests` (eligibility, conflicts, rollback, history). Closes the M3 gap. R2 |
+| FR-010 | Material actions/comments are recorded | Comments saved with author; empty comments rejected; every transition audited | `transition_history`, `request_comments`, `POST /api/requests/{id}/comments` | Transition audit: `Rejection_audit_records_...`, `Failed_audit_write_rolls_back_the_status_change` | Audit entry per transition | R1 | **Partially verified**: transition audit verified; comment endpoint untested | **Met.** Comment endpoint tested: author recorded, blank → 400, no access → 403. Comments shown in request detail. R2 |
+| FR-011 | Requests close only under defined conditions | Only Assigned can be Resolved, with a resolution note; requester sees Resolved | `RequestStatus`, `TransitionRules`, `TransitionService` | `Resolve_without_note_is_refused`; `Cannot_resolve_an_unassigned_request`; `ST1`; `E2E1` | Missing note / Unassigned → refused; valid resolve persisted and visible | R1, S1 | **Verified** | **Met.** M4 also limits resolving to the current assignee (DEC-M4-01, `ResolutionOwnershipTests`); approved transitions unchanged. R2 |
+| FR-012 | Managers see service activity | Overview without exposing data outside the approved scope | `GET /api/reports/counts` (Manager role), Manager scope | `Manager_can_view_requests_but_cannot_change_status_through_this_policy`; `API8` | Manager gets counts; Staff 403 | R1 | **Partially verified**: counts only; no richer activity view | **Met** against its criterion (scope): counts plus a filtered Manager list (`API8`, `Combined_filters_scope_pagination_and_counts_match`). Limitation: no performance figures; dashboards deferred (§1.6.3). R2 |
+| FR-013 | Managers see counts by lifecycle condition | Open, overdue and resolved counts; overdue strictly after 72 hours while open (CR-M3-02) | `OverduePolicy`, `SqliteRequestRepository.GetCountsAsync`, summary/detail API, deadline filter and Manager count UI | `API8`; `OverdueTests`; `OverdueApiTests` | Exact deadline not overdue; +1 tick overdue; terminal states excluded; scope/filters preserved | R1; `docs/quality/TEST_EVIDENCE.md` overdue follow-up | **Verified** by automated Core/SQLite/HTTP cases and a 19-check exploratory run; DEF-07 closed; CR-M3-02 accepted | **Met.** Unchanged since M3. R2 |
+| FR-014 | Managers filter by category/status | Filtered counts/lists within the Manager's scope | `category`/`status` parameters on counts and list | — | — | — | **Implemented, unverified** (no dedicated test) | **Met.** Manager category/status filters, paging and matching counts tested (`Combined_filters_scope_pagination_and_counts_match`); UI category filter added. R2 |
+| FR-015 | Consistent lifecycle (amended by CR-M2-01) | Only Unassigned→Assigned, Unassigned→Rejected, Assigned→Resolved; all others refused, nothing changed | `RequestStatus`, `TransitionRules`, `TransitionService` | `Table_allows_only_the_three_approved_transitions` (16 pairs); `Terminal_requests_cannot_be_assigned_again`; `ST1`; `API7` | Exactly 3 of 16 pairs allowed; invalid → `InvalidTransition`/409 | R1 | **Verified**; DEF-02 closed (wording reconciled) | **Met.** Unchanged since M3. R2 |
+| NFR-001 | Acceptable response under normal load | No numeric target set | Indexes, WAL mode | Load test 1 and 10 users | Compared with the 1-user baseline (no formal target) | P1 | **Measured, no target**; DEF-09 mitigated | **Partially met.** Measured (P1), but no numeric target exists; not re-measured in M4. |
+| NFR-002 | Secure credentials and transport | No plaintext passwords; HTTPS enforced | PBKDF2 hashes (ADR-08); `RequireHttps` in Production | `API2` (login); code review of `PasswordHasher` | Hashes only; HTTPS on in Production config | R1 | **Partially verified**: hashing verified; HTTPS not exercised (TD-07) | **Met.** Per-account hashed passwords (`API11`, `API12`); HTTPS exercised on staging (H1). Limits: development certificate; HSTS not observable on localhost. R2, H1 |
+| NFR-003 | System stays available | 99.9% availability (SHOULD) | Single SQLite node (ADR-07); no monitoring | — | — | — | Not traced in M3 | **Not met.** No availability measurement; single SQLite node (ADR-07). SHOULD. |
+| NFR-004 | Reliable updates | Status + audit saved atomically; stale updates do not overwrite | `SaveTransitionAsync` transaction + version check | `Failed_audit_write_rolls_back_the_status_change`; `Stale_transition_is_reported_as_conflict_and_changes_nothing`; `Concurrent_change_is_reported_as_conflict`; `Storage_failure_propagates_and_is_not_reported_as_success` | Rollback leaves status/version/history unchanged; stale save returns conflict | R1 | **Verified** on SQLite (not PostgreSQL) | **Met (SQLite only).** Reassignment rollback also tested. R2 |
+| NFR-005 | Unauthenticated users cannot access information | Protected endpoints reject unauthenticated callers | Cookie authentication, fallback authorization policy | `API1` | 401 on all protected endpoints | R1 | **Verified** | **Met.** Unchanged since M3. R2 |
+| NFR-006 | Works on current browsers | Cross-browser testing (SHOULD) | Plain HTML/CSS/JS, no framework | Manual check: sign in, filtering, navigation | Same behaviour in each browser | B1 | Not traced in M3 | **Met.** Firefox 158, Edge 155, Chrome 154 (B1). Manual, desktop only. |
+| NFR-007 | Requester privacy | Requesters cannot access other requesters' records | Owner scope in SQL; 404 for others' ids | `Requester_can_view_only_their_own_requests`; `Requester_cannot_read_another_requesters_request_from_the_database`; `API4` | Detail 404, list excludes | R1 | **Verified** (Core, database and HTTP) | **Met.** Also holds with M4 filters. R2 |
+| NFR-008 | Users complete tasks unaided | Completion rate and time (SHOULD) | Form validation, error pop-ups (M4) | — | — | — | Not traced in M3 | **Not met.** No usability study. SHOULD. |
 
 ---
 
@@ -311,6 +325,56 @@ Focus will be purely emphasized upon the service request lifecycle. Having impor
 **Quality:** The project needs to be functional, reliable, stable, usable by the majority of participants, and allow for potential improvements.
 
 **Security:** Data needs to be kept secure, backed up, relevant and reliable. Should there be any data risks, systems such as backups need to be kept up to date.
+
+### 1.6.7. Final Scope Completion (M4)
+
+Met = 1, Partially met = 0.5, Not met = 0, over the 23 M1 acceptance criteria (§1.5.1–1.5.2). CR-M2-01 and CR-M3-02
+reworded five criteria but removed none, so the denominator stays 23. Deferred and out-of-scope items (§1.6.2–1.6.3) are
+excluded. Statuses and evidence: RTM §1.5.4.
+
+| Req | Priority | Final status | Value | Note |
+|---|---|---|---|---|
+| FR-001 | MUST | Met | 1 |  |
+| FR-002 | MUST | Met | 1 |  |
+| FR-003 | MUST | Met | 1 |  |
+| FR-004 | MUST | Met | 1 |  |
+| FR-005 | MUST | Met | 1 |  |
+| FR-006 | MUST | Met | 1 | Search added in M4 |
+| FR-007 | MUST | Met | 1 |  |
+| FR-008 | MUST | Met | 1 |  |
+| FR-009 | MUST | Met | 1 | Reassignment exposed in M4 |
+| FR-010 | MUST | Met | 1 | Comments tested in M4 |
+| FR-011 | MUST | Met | 1 | Assignee-only resolve (DEC-M4-01) |
+| FR-012 | MUST | Met | 1 | Judgement call (see below) |
+| FR-013 | MUST | Met | 1 | Changed by CR-M3-02 |
+| FR-014 | MUST | Met | 1 | Tested in M4 |
+| FR-015 | MUST | Met | 1 | Changed by CR-M2-01 |
+| NFR-001 | MUST | Partially met | 0.5 | Measured; no numeric target exists |
+| NFR-002 | MUST | Met | 1 | Hashing and HTTPS (H1); development certificate only |
+| NFR-003 | SHOULD | Not met | 0 | No availability measurement |
+| NFR-004 | SHOULD | Met | 1 | On SQLite only |
+| NFR-005 | MUST | Met | 1 |  |
+| NFR-006 | SHOULD | Met | 1 | Manual, 3 desktop browsers (B1) |
+| NFR-007 | MUST | Met | 1 |  |
+| NFR-008 | SHOULD | Not met | 0 | No usability study |
+
+| Result | Value | Percentage |
+|---|---|---|
+| **All approved criteria** | **20.5 / 23** | **89.1%** |
+| MUST (FR-001–015, NFR-001/002/005/007) | 18.5 / 19 | 97.4% |
+| SHOULD (NFR-003/004/006/008) | 2 / 4 | 50.0% |
+
+**Conclusion.** Within the brief's 80–89% "substantial completion" band; all 15 functional MUSTs are met. FR-012 is the one
+judgement call: Met against its written criterion; scored Partially met, the total would be 87.0%.
+
+**Not fully met.**
+- **NFR-001 (MUST, Partial):** measured (P1), but M1 set no numeric target, so it cannot pass or fail. Carried as a
+  requirements gap rather than a target invented after the results.
+- **NFR-003, NFR-008 (SHOULD, Not met):** availability cannot be shown on single-node SQLite (ADR-07); no usability study
+  was run. SHOULDs are outside the committed MUST baseline (§1.6.4).
+
+**Change control.** Criterion changes went through CR-M2-01 and CR-M3-02; DEC-M4-01 narrows who may resolve without
+changing a requirement. No scope was dropped without a change record.
 
 ---
 
@@ -439,12 +503,12 @@ I: Impact (Low, Medium, High)
 
 | Risk ID | Description | Cause | P | I | Priority | Mitigation | Contingency | Owner | Status |
 |---|---|---|---|---|---|---|---|---|---|
-| RISK-001 | Sensitive request/personal data is exposed, leaked, or accessed without authorisation | Insufficient access control, weak authentication, unencrypted storage/transit | M | H | High | Enforce role-based access control, encryption in transit/at rest, two-factor authentication for staff/management accounts | Revoke or rotate credentials, disable affected access, review audit records, notify stakeholders | Aidan | Open |
-| RISK-002 | Project cost exceeds the team's available/educational budget | Reliance on paid technologies, subscriptions, or services not evaluated for cost before adoption | M | M | Medium | Investigate and document cost of any new technology/service before adoption; prefer free/low-cost tiers where practical | Fall back to free or self-hosted options and defer non-essential services through change control | Kasper | Open |
-| RISK-003 | Delivered software fails to meet baselined quality/functional standards | Technology limitations, incomplete testing, or inconsistent individual contribution | M | H | High | Stage-gate review of each milestone's artefacts against acceptance criteria before sign-off | Defer SHOULD requirements through impact analysis rather than reducing testing | Lethebe | Open |
-| RISK-004 | System is unavailable or degrades during peak usage, causing service disruption | Single central database server, latency, connectivity issues, power outages, hosting constraints | M | M | Medium | Select hosting with acceptable uptime guarantees; monitor performance; plan for redundant/backup capacity where cost allows | Restore from backup, communicate the outage, review hosting choice | Aidan | Open |
-| RISK-005 | The central PostgreSQL server is a single point of failure and a network dependency; hosting cost and availability limits are unverified | Single database server; free-tier limits, backup and recovery not yet evidenced; availability on BC Desktop not confirmed | M | H | High | Verify hosting limits and BC Desktop compatibility from official sources; document backup/recovery and SPOF at architecture level in the persistence ADR | Fall back to a local instance for development and demonstration | Aidan | Open |
-| RISK-006 | Delivery is compressed and PR reviews bottleneck, leading to late bulk merges or weak reviews that earn limited credit | Compressed timeline; two independent approvals required on every substantive PR (Master Brief section 9) | H | H | High | Open PRs early; reviewers named and given specific checks; keep commits progressive | Split large PRs; record schedule variance honestly | Lethebe | Open |
+| RISK-001 | Sensitive request/personal data is exposed, leaked, or accessed without authorisation | Insufficient access control, weak authentication, unencrypted storage/transit | M | H | High | Enforce role-based access control, encryption in transit/at rest, two-factor authentication for staff/management accounts | Revoke or rotate credentials, disable affected access, review audit records, notify stakeholders | Aidan | **Mitigated.** Role/scope checks and privacy verified (NFR-005, NFR-007 Met; API1, API4, DT1); hashed per-account passwords; HTTPS exercised (H1). Residual exposure tracked as RISK-M3-01. |
+| RISK-002 | Project cost exceeds the team's available/educational budget | Reliance on paid technologies, subscriptions, or services not evaluated for cost before adoption | M | M | Medium | Investigate and document cost of any new technology/service before adoption; prefer free/low-cost tiers where practical | Fall back to free or self-hosted options and defer non-essential services through change control | Kasper | **Closed.** No paid services used: SQLite, local simulated staging and free tooling (ADR-07, §1.14). |
+| RISK-003 | Delivered software fails to meet baselined quality/functional standards | Technology limitations, incomplete testing, or inconsistent individual contribution | M | H | High | Stage-gate review of each milestone's artefacts against acceptance criteria before sign-off | Defer SHOULD requirements through impact analysis rather than reducing testing | Lethebe | **Mitigated.** 89.1% scope completion, all 15 FRs Met (§1.6.7); 109/109 tests (R2). NFR-001/003/008 gaps recorded as limitations. |
+| RISK-004 | System is unavailable or degrades during peak usage, causing service disruption | Single central database server, latency, connectivity issues, power outages, hosting constraints | M | M | Medium | Select hosting with acceptable uptime guarantees; monitor performance; plan for redundant/backup capacity where cost allows | Restore from backup, communicate the outage, review hosting choice | Aidan | **Accepted.** Single SQLite node, no availability evidence (NFR-003 Not met, TD-05); stays in staging (§1.17.6). |
+| RISK-005 | The central PostgreSQL server is a single point of failure and a network dependency; hosting cost and availability limits are unverified | Single database server; free-tier limits, backup and recovery not yet evidenced; availability on BC Desktop not confirmed | M | H | High | Verify hosting limits and BC Desktop compatibility from official sources; document backup/recovery and SPOF at architecture level in the persistence ADR | Fall back to a local instance for development and demonstration | Aidan | **No longer applicable as written.** PostgreSQL was replaced by SQLite (ADR-07); the single-node exposure is carried by RISK-004 and RISK-M2-01. |
+| RISK-006 | Delivery is compressed and PR reviews bottleneck, leading to late bulk merges or weak reviews that earn limited credit | Compressed timeline; two independent approvals required on every substantive PR (Master Brief section 9) | H | H | High | Open PRs early; reviewers named and given specific checks; keep commits progressive | Split large PRs; record schedule variance honestly | Lethebe | **Materialised (M3).** Late bulk integration at M3 (AI-M3-02, release by admin bypass recorded in §1.2). M4 work was integrated on `m4-refinement` and submitted to `main` through one pull request. |
 
 **M3 risk review (2026-10-16).** Earlier rows are kept as recorded. Changes are noted here.
 
@@ -454,11 +518,11 @@ I: Impact (Low, Medium, High)
 
 | Risk ID | Description | Cause | P | I | Priority | Mitigation | Contingency | Owner | Status |
 |---|---|---|---|---|---|---|---|---|---|
-| RISK-M3-01 | Account compromise once real users exist | Shared demo password; no lockout or MFA; no TLS in staging (TD-06, TD-07) | M | H | High | PBKDF2 hashes, login rate limit, HttpOnly/SameSite cookie, authenticated-by-default API (ADR-08) | Disable seeding, rotate the password, add per-user credentials before any real use | Aidan | Open |
-| RISK-M3-02 | Submissions slow down under concurrent use | SQLite serialises writes (ADR-07, DEF-09) | M | M | Medium | WAL mode; load-tested at 10 users ([performance](../quality/PERFORMANCE_TEST.md)) | Move to the PostgreSQL adapter behind `IRequestRepository` | Kasper | Open |
-| RISK-M3-03 | The team cannot explain the AI-assisted M3 code during the defence | Large change set drafted with AI assistance (AI-M3-01, AI-M3-02) under deadline pressure | M | H | High | Small commits, tests labelled with requirement IDs, every member reviews the PR | Walk through the code together before the presentation; reject anything nobody can explain | All | Open |
-| RISK-M3-04 | Requirement gaps remain at release | FR-006 search, FR-010 comments and remaining FR-014 gaps; DEF-07 implemented under CR-M3-02 | H | M | Medium | Gaps are listed in the RTM (§1.5.4) and the release summary | Formally defer through change control if not done in M4 | Lethebe | Open |
-| RISK-M3-05 | Test evidence does not reflect production scale | One laptop, localhost, short single 60 s load runs; SQLite rather than PostgreSQL | M | M | Medium | Results stated with their limits ([performance](../quality/PERFORMANCE_TEST.md)) | Repeat runs in a production-like environment before real use | Kasper | Open |
+| RISK-M3-01 | Account compromise once real users exist | Shared demo password; no lockout or MFA; no TLS in staging (TD-06, TD-07) | M | H | High | PBKDF2 hashes, login rate limit, HttpOnly/SameSite cookie, authenticated-by-default API (ADR-08) | Disable seeding, rotate the password, add per-user credentials before any real use | Aidan | **Mitigated (open).** Per-account passwords and HTTPS exercised (TD-06, TD-07 partly repaid); no lockout, reset, MFA or public certificate. Blocks production (§1.17.6, RISK-M4-01). |
+| RISK-M3-02 | Submissions slow down under concurrent use | SQLite serialises writes (ADR-07, DEF-09) | M | M | Medium | WAL mode; load-tested at 10 users ([performance](../quality/PERFORMANCE_TEST.md)) | Move to the PostgreSQL adapter behind `IRequestRepository` | Kasper | **Materialised → DEF-09, mitigated.** WAL cut 10-user submit p95 from 818 ms to 311 ms (P1); writes still serialised (TD-05). |
+| RISK-M3-03 | The team cannot explain the AI-assisted M3 code during the defence | Large change set drafted with AI assistance (AI-M3-01, AI-M3-02) under deadline pressure | M | H | High | Small commits, tests labelled with requirement IDs, every member reviews the PR | Walk through the code together before the presentation; reject anything nobody can explain | All | **Mitigated.** AI use recorded with verification (AI-M3-01/02, AI-M4-01–06); members review the code they defend. |
+| RISK-M3-04 | Requirement gaps remain at release | FR-006 search, FR-010 comments and remaining FR-014 gaps; DEF-07 implemented under CR-M3-02 | H | M | Medium | Gaps are listed in the RTM (§1.5.4) and the release summary | Formally defer through change control if not done in M4 | Lethebe | **Closed.** FR-006, FR-010 and FR-014 tested in M4 (RTM §1.5.4, R2). The 72-hour overdue window remains a team assumption (CR-M3-02). |
+| RISK-M3-05 | Test evidence does not reflect production scale | One laptop, localhost, short single 60 s load runs; SQLite rather than PostgreSQL | M | M | Medium | Results stated with their limits ([performance](../quality/PERFORMANCE_TEST.md)) | Repeat runs in a production-like environment before real use | Kasper | **Accepted.** Load and staging evidence is single-machine and short-run; stated as a limitation (PERFORMANCE_TEST, NFR-001 Partially met). |
 
 ---
 
@@ -632,11 +696,12 @@ A2’s audit logging analysis recommends using synchronous commits for the simpl
 | DEC-M2-04: Proposed | Decision | Start with one primary node for the database and only adding replicas when it is warranted. | This is suitable for a 3-man development team due to its low cost but still being operational.        | FR-005, FR-006, FR-012–FR-014; NFR-001, NFR-003          | Planned              |
 | DEC-M2-05: M2 Accepted | Decision | Centralize role/request visibility in a dedicated Authorization area using a Strategy-style visibility policy that returns a `VisibilityScope`. | ASP.NET Core authorization is reserved for the application boundary; the Core policy keeps CivicConnect-specific visibility rules testable and prevents list/detail rules from drifting. Staff members may belong to multiple groups and receive the union of their permitted request types. | FR-001, FR-004–FR-006, FR-008, FR-012–FR-014; NFR-005, NFR-007; FEC-02, FEC-03, FEC-04 | `src/CivicConnect.Core/Authorization/`; 29 Core tests passing; ADR-05 |
 | DEC-M2-06: M2 Accepted | Decision | Use C#, ASP.NET, PostgreSQL and npgSQL as the technology stack. | The reasoning behind the decisions is due to the familiarity of the software available, the languages and the integrations to the development team. Additionally security and maintainability are also adequately accounted for from these technologies. | FR-001–FR-015; NFR-001–NFR-008 | ADR-06; StackDiagram; PED 1.12 |
-| RISK-M2-01: Open    | Risk     | Database primary node becoming unavailable. Which stops read and write queries.             | Define the backup and restore methods to prepare for future possible errors.                          | NFR-003, NFR-004                                         | Planned              |
-| RISK-M2-02: Open    | Risk     | Growing data such as history and reporting queries which results in slow performance        | Measure system and query performance as load and data grows and add necessary tweaks such as indexes. | FR-005, FR-006, FR-012–FR-014; NFR-001                   | Planned              |
-| RISK-M2-03: Open    | Risk     | Incomplete transactions or updates creating inconsistent request records or data            | Enforce and ensure authorised transactions and conflict handling.                                     | FR-009–FR-011, FR-015; NFR-004                           | Planned              |
-| RISK-M2-04: Open    | Risk     | Sensitive data being exposed to unauthorised users                                          | Enforce role-based request access checks.                                                             | FR-001, FR-007, FR-008, FR-010, FR-012; NFR-005, NFR-007 | Planned              |
-| RISK-M2-05: Open    | Risk     | Lifecycle rules being bypassed or becoming over-simplified as the model evolves             | Route status changes through `TransitionService`; use PR review and tests; revisit the pattern through a new ADR if state-specific behaviour becomes materially different. | FR-007, FR-009, FR-011, FR-015; NFR-004 | ADR-04; lifecycle tests |
+| DEC-M4-01: M4 Accepted | Decision | Only the current assignee may resolve a request; other in-scope Staff must reassign it to themselves first. | Once reassignment exists (FR-009), the assignee is the accountable owner, so resolution and the audit trail name the same person. Narrows who may perform an approved transition; the lifecycle (CR-M2-01) is unchanged. | FR-009, FR-011, FR-015 | ENG_DECISION_LOG DEC-M4-01; `ResolutionOwnershipTests` |
+| RISK-M2-01: Accepted    | Risk     | Database primary node becoming unavailable. Which stops read and write queries.             | Define the backup and restore methods to prepare for future possible errors.                          | NFR-003, NFR-004                                         | ADR-07; STAGING.md backup/restore; TD-05  |
+| RISK-M2-02: Materialized    | Risk     | Growing data such as history and reporting queries which results in slow performance        | Measure system and query performance as load and data grows and add necessary tweaks such as indexes. | FR-005, FR-006, FR-012–FR-014; NFR-001                   | `PERFORMANCE_TEST` Document |
+| RISK-M2-03: Mitigated    | Risk     | Incomplete transactions or updates creating inconsistent request records or data            | Enforce and ensure authorised transactions and conflict handling.                                     | FR-009–FR-011, FR-015; NFR-004                           | Test Evidence: `Failed_audit_write_rolls_back_the_status_change`; `Stale_transition_is_reported_as_conflict_and_changes_nothing` (NFR-004 Met) |
+| RISK-M2-04: Mitigated    | Risk     | Sensitive data being exposed to unauthorized users                                          | Enforce role-based request access checks.                                                             | FR-001, FR-007, FR-008, FR-010, FR-012; NFR-005, NFR-007 | Test Evidence: `DT1_Assignment_decision_table`; `API8_Manager_counts_match_stored_requests_and_are_manager_only` |
+| RISK-M2-05: Mitigated    | Risk     | Lifecycle rules being bypassed or becoming over-simplified as the model evolves             | Route status changes through `TransitionService`; use PR review and tests; revisit the pattern through a new ADR if state-specific behaviour becomes materially different. | FR-007, FR-009, FR-011, FR-015; NFR-004 | ADR-04; lifecycle tests |
 ---
 
 ## 1.13. Implementation & Verification
@@ -692,7 +757,7 @@ All of the M2 "deferred integration" items above are implemented in M3:
 
 ## 1.14. Deployment, Operations & SRE
 
-*(Production deployment to be baselined in Milestone 4.)*
+**Final deployment state (M4): staging, by a no-go decision** (§1.17.6). Staging can also run over HTTPS with `start.ps1 -Https` (development certificate, H1).
 
 **M3 simulated staging:** a published Release build per commit runs in the `Staging` environment on port 5090. It has its own
 database and gets its secrets from environment variables. `/health` reports the deployed commit. Deploy, verify and
@@ -712,6 +777,10 @@ rollback steps, configuration differences from production, and the monitoring li
 * **SEN381 Milestone 3 Brief** — Controlled Construction, Integration, Quality & Release Readiness.
 * **ADR-07 — SQLite Persistence Adapter for the M3 Release Candidate** (CivicConnect, M3, 2026-10-15).
 * **ADR-08 — API Authentication for the M3 Release Candidate** (CivicConnect, M3, 2026-10-16).
+* **CR-M3-02 — Overdue Request Rule** (CivicConnect, M3, 2026-10-16).
+* **SEN381 Final Project (Milestone 4) Brief** — Finalise, Consolidate & Conclude.
+* **DEC-M4-01 — Only the Current Assignee May Resolve a Request** ([Engineering Decision Log](../decisions/ENG_DECISION_LOG.md), M4, 2026-10-18).
+* M4 records: [AI Usage Register](../AI_USAGE.md) (AI-M4-01 to AI-M4-06), [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md) (RISK-M4-01/02).
 * M3 registers and evidence: [Defect Register](../quality/DEFECT_REGISTER.md), [Technical Debt Register](../risk/TECH_DEBT_REGISTER.md), [Test Evidence](../quality/TEST_EVIDENCE.md), [Performance Test](../quality/PERFORMANCE_TEST.md), [Staging](../deployment/STAGING.md), [Release Evidence Summary](../quality/RELEASE_EVIDENCE_SUMMARY.md), [AI Usage Register](../AI_USAGE.md).
 * Indeed Editorial Team. Business value. Available at: https://www.indeed.com/career-advice/career-development/business-value (Accessed 9 September 2026).
 * ProjectManager. How to write a project scope statement. Available at: https://www.projectmanager.com/blog/project-scope-statement (Accessed 9 September 2026).
@@ -1186,3 +1255,83 @@ Source: `tests/CivicConnect.Api.Tests/OverdueApiTests.cs`.
 | `TEST_EVIDENCE.md` | 72 baseline + 13 overdue + 3 DEF-10 cases = **88**; **19/19 exploratory checks** plus isolated browser smoke evidence. Historical coverage/load figures remain labelled. |
 
 **Documentation boundary:** `RELEASE_EVIDENCE_SUMMARY.md` supplies the current conditional decision and 88-case result. Older PED/CR-M3-02/DEF-07 passages still cite 72 or 85 cases; these are historical stages. Statements that comments/reassignment are wholly untested are also stale: the overdue SQLite journey checks their successful path, while dedicated negative/UI coverage remains incomplete.
+
+---
+
+## 1.17. Milestone 4
+
+### 1.17.1. Milestone One scope to Milestone Four final delivery reflection
+M1 described that CivicConnect would contain the following functionality: service-request lifecycle: authenticated request submission, categorisation, status and history visibility, controlled Staff responsibility and updates, and Manager oversight. Access control, input validation, stored ownership/history and privacy were cross-cutting requirements. The baseline contains 15 functional requirements and 8 non-functional requirements. Milestone1 deliberately deferred the technology choice to M2.
+
+### 1.17.2. Scope comparisons with final delivery
+
+
+| M1 scope item / requirement | M1 priority/status | Final status | Acceptance criteria status | Evidence | Conclusion / reason for variance |
+|---|---|---|---|---|---|
+| **FR-001 — Role-based authorised actions** | MUST / In scope | IMPLEMENTED | Met | RTM; authorization tests; API5; `Managers_cannot_call_any_operational_transition` | Requesters, Staff and Managers receive role-appropriate access. Managers and Requesters cannot perform Staff actions. |
+| **FR-002 — Authenticated request submission** | MUST / In scope | IMPLEMENTED | Met against approved clarification | RTM; API3/API6; submission integration test; E2E1; CR-M2-01 | Valid submissions are stored with the requester and initial Unassigned status; invalid input presents an error. CR-M2-01 clarified the starting state without removing submission capability. |
+| **FR-003 — Categorise a request** | MUST / In scope | IMPLEMENTED | Met | RTM; `EP1_Submission_input_partitions`; API3; DEF-08 | A selected category is stored with the request. |
+| **FR-004 — View current request status** | MUST / In scope | IMPLEMENTED | Met | RTM; D1; ST1; E2E1/E2E2 | Requesters see their own request's current status, including resolution or rejection.  |
+| **FR-005 — View request history/list** | MUST / In scope | IMPLEMENTED | Met | RTM; D2; API4; SQLite ownership test | Lists contain the requester's submissions and returns an empty list when there are no past requests. |
+| **FR-006 — Staff search, filter and sort** | MUST / In scope | IMPLEMENTED | Met | RTM; `Combined_filters_scope_pagination_and_counts_match`; assignment-directory integration test; commit `2c82f1b` | Search by identifier/text, category filtering and category sorting are delivered within authorised scope. Search and dedicated combined-filter verification were implemented in M4 after the M3 gap. |
+| **FR-007 — Meaningful request feedback** | MUST / In scope | IMPLEMENTED | Met against approved clarification | RTM; API7; E2E2; rejection-reason tests; CR-M2-01 | Status, rejection reasons and resolution notes are available in-app.  |
+| **FR-008 — Authorised full request details** | MUST / In scope | IMPLEMENTED | Met | RTM; Staff-category visibility tests; DEF-01 regression; DT1 | Staff can inspect relevant requests but cannot read or change requests outside their permitted categories. |
+| **FR-009 — Assign or accept responsibility** | MUST / In scope | IMPLEMENTED | Met | RTM; `RefinementApiTests`; `ReassignmentTests`; `ResolutionOwnershipTests` | Staff can accept responsibility or select another eligible Staff member. M4 exposed reassignment through HTTP/UI and verified history, permissions, rollback and stale-version conflicts, completing the M3 integration gap. |
+| **FR-010 — Record actions and comments** | MUST / In scope | IMPLEMENTED | Met | RTM; assignment/comments integration test; unauthorised-caller tests; transaction/audit tests | Comments retain author/content, empty comments are refused, and request transitions are audited. M4 added comment display and dedicated positive/negative verification. |
+| **FR-011 — Resolve/close authorised requests** | MUST / In scope | IMPLEMENTED | Met against approved clarification | RTM; E2E1; `ResolutionOwnershipTests`; CR-M2-01; DEC-M4-01 | An Assigned request can be resolved with a note and the requester sees the outcome. Closed means Resolved.  |
+| **FR-012 — Manager service activity overview** | MUST / In scope | IMPLEMENTED | Met against the written scope criteria | RTM; API8; combined-filter/counts test | Managers receive authorised counts and a filtered request list. Resolution-time analytics are absent, but the written acceptance criterion concerns authorised reporting scope |
+| **FR-013 — Identify open, overdue and resolved/closed work** | MUST / In scope | IMPLEMENTED | Met against approved changes | RTM; `OverdueTests`; `OverdueApiTests`; API8; CR-M2-01/CR-M3-02 | Open and terminal counts are delivered. Overdue is now explicitly more than 72 hours after submission while open; assignment retains the deadline. This addresses the missing M3 overdue feature. The duration remains a team assumption rather than a stakeholder-validated service target. |
+| **FR-014 — Manager category/status filters** | MUST / In scope | IMPLEMENTED | Met | RTM; `Combined_filters_scope_pagination_and_counts_match`; M4 filter UI | Category/status filters apply to lists and counts, with totals independent of list pagination. M4 completed dedicated verification and the category-filter interface. |
+| **FR-015 — Defined status transitions** | MUST / In scope | IMPLEMENTED | Met against approved replacement wording | RTM; 16-pair lifecycle test; ST1; API7; CR-M2-01 | Original wording listed Assigned, In Progress, Resolved and Closed. The approved implementation uses Unassigned→Assigned, Unassigned→Rejected and Assigned→Resolved request flows. The original model was changed through recorded control, not silently omitted. |
+| **NFR-001 — Response under normal operational load** | MUST / In scope | PARTIALLY IMPLEMENTED | Partially met | RTM; performance report; raw 1-/10-user load evidence; DEF-09 | Load was measured and WAL reduced recorded submission p95 from 818 ms to 311 ms. M1 defined no numeric acceptance threshold, so satisfactory performance cannot be established objectively.  |
+| **NFR-002 — HTTPS and password hashing** | MUST / In scope | IMPLEMENTED | Met within the documented demonstration environment | RTM; H1 HTTPS checks; API11/API12; authentication code | Passwords are hashed in the database, seed accounts have individual credentials, and HTTPS enforcement is performed on staging.  |
+| **NFR-003 — 99.9% availability** | SHOULD / In scope | NOT IMPLEMENTED — availability measurement | Not met | RTM; absence of availability monitoring/results; ADR-07; RISK-M2-01 | No sustained availability measurement demonstrates 99.9%. A working application and short load test does not prove uptime.  |
+| **NFR-004 — Atomic lifecycle updates** | SHOULD / In scope | IMPLEMENTED | Met on SQLite | RTM; audit-write rollback, stale-transition and reassignment rollback tests | Request changes and audit records commit together or roll back, and stale versions are refused. |
+| **NFR-005 — Prevent unauthenticated/unauthorised access** | MUST / In scope | IMPLEMENTED | Met | RTM; API1/API5; DT1; authorization regression tests | Protected endpoints reject anonymous callers and role/scope checks refuse disallowed operations.  |
+| **NFR-006 — Browser compatibility** | SHOULD / In scope | IMPLEMENTED | Met within recorded test coverage | RTM; B1 manual browser checks in test evidence | Team checks passed sign-in, filtering and navigation in Firefox, Edge and Chrome. Coverage is manual and desktop-only; |
+| **NFR-007 — Requester privacy** | MUST / In scope | IMPLEMENTED | Met | RTM; API4; ownership tests; combined-filter privacy assertion | Requesters cannot retrieve another requester's detail or list records.  |
+| **NFR-008 — Complete tasks without assistance** | SHOULD / In scope | PARTIALLY IMPLEMENTED — UI delivered, usability validation absent | Not met | RTM; frontend forms, validation and error dialogs; no timed task/completion study | The responsive interface supports the intended workflows, but no independent completion-rate/time study was run. Team demonstrations and layout improvements cannot establish unaided usability; stakeholder ease of use remains unproven.|
+| **External-system integration** | Deferred/Future | Still deferred | Not applicable to final committed scope | PED §1.6.3 | Correctly remained deferred to protect the core request lifecycle from integration complexity. |
+| **External status notifications** | Deferred/Future | Still deferred | Not applicable to final committed scope | PED §1.6.3; FR-007 implementation | Email/SMS/push delivery is absent. In-app status/reason visibility meets the committed feedback requirement; external notifications remains future work. |
+| **Requester satisfaction/evaluation** | Deferred/Future | Still deferred | Not applicable to final committed scope | PED §1.6.3 | Satisfaction surveys and evaluation features were not delivered because they were outside the final commitment.  |
+| **Report export to document formats** | Deferred/Future | Still deferred | Not applicable to final committed scope | PED §1.6.3; Manager reporting implementation | On-screen reporting is available; document export remains future work.  |
+| **Automatic overdue escalation** | Deferred/Future | Still deferred | Not applicable to final committed scope | PED §1.6.3; CR-M3-02 | Overdue identification is delivered, but automatic escalation is not. |
+| **Configurable management dashboards** | Deferred/Future | Still deferred | Not applicable to final committed scope | PED §1.6.3; FR-012 final RTM | Fixed counts and filters support basic oversight. Custom dashboards and analytics remain deferred|
+| **Native Android/iOS application** | Out of scope | Remained excluded | Not applicable | PED §1.6.2 | A browser application was delivered; native mobile development was never a final commitment. |
+| **Request import from WhatsApp, email or telephone systems** | Out of scope / Deliberate exclusion | Remained excluded | Not applicable | PED §1.6.2–1.6.3 | Requests are entered through CivicConnect.  |
+| **Payments, inventory/asset management, unrelated functions and hardware procurement** | Out of scope | Remained excluded | Not applicable | PED §1.6.2 | These capabilities were not delivered because they fall outside the agreed service-request product. |
+| **Operational failure recovery/maintenance** | Out of scope | Remained excluded | Not applicable to this excluded scope item | PED §1.6.2; ADR-07; technical debt register | Operational recovery was excluded, while transaction rollback remains implemented under NFR-004.  |
+
+
+### 1.17.3. What changed and why
+
+1. **The lifecycle changes (CR-M2-01).** M1 wording mixed Assigned, In Progress, Resolved and Closed. The current implementation uses the following lifecycle phases: Unassigned → Assigned, Unassigned → Rejected, and Assigned → Resolved. Rejected and Resolved are terminal; “closed” means Resolved rather than an additional status. This removed conflicting rules while retaining feedback and controlled closure.
+2. **Persistence changed from the M2 PostgreSQL target to SQLite (ADR-07).** SQLite made an integrated, reproducible release possible without a database server. The Core/Data/API separation and repository interface remain. The cost is serialised writes, no server availability features, and PostgreSQL verification still outstanding. WAL reduced the recorded 10-user submission p95 from 818 ms to 311 ms. 
+3. **Overdue became an explicit rule (CR-M3-02).** An open request is overdue when it goes over 72 hours after submission; assignment does not reset the deadline and terminal requests are excluded. Counts, filters and UI indicators implement that rule. The duration is a documented team assumption, not a stakeholder-validated service-level agreement.
+4. **M4 completed functional gaps visible at M3.** Search, category filtering, other-Staff assignment/reassignment, comments verification and Manager filter tests were completed in `2c82f1b`. The frontend was reorganised into responsive grid panels with error dialogs and clearer operational controls. These refinements support existing scope rather than introduce new functionality.
+5. **Resolution ownership was tightened (DEC-M4-01).** Only the current assignee may resolve a request. Current assignee may transfer assignment of request to other authorised staff. Should an unauthorised staff attempt to resolve an assigned request, an error message dialog pops up to notify them that the request is assigned. 
+6. **Security demonstration improved in M4.** Unique per-account seed credentials replace the shared demo password. Optional HTTPS staging exercises redirects and Secure cookies with a development certificate. Unique passwords removed the security threat of seeded accounts containing the same password.
+
+### 1.17.4. What remains incomplete
+
+| Item | Final assessment | Remaining work |
+|---|---|---|
+| NFR-001 performance | Partially met | Load measurements exist, but M1 supplied no numeric acceptance target. The final search workload has no recorded full load benchmark. |
+| NFR-003 99.9% availability | Not met | No availability measurement or sustained monitoring evidence. A short successful test run cannot establish this target.  |
+| NFR-008 unaided usability | Not met | No study of independent task completion rate or time.  |
+| Account and group administration | Deferred technical debt (TD-01/TD-06) | Seeded accounts/groups still replace administrative workflows; Generated demo passwords exist in a local git-ignored file, although database credentials are hashed. |
+| Production operation and maintenance | Limited demonstration | TLS uses a development certificate; public-certificate deployment and observable HSTS remain unverified. SQLite write limits (TD-05), migrations (TD-08), and automated browser tests (TD-09) remain open. |
+| Richer reporting and integrations | Deliberately deferred | No implemented dashboards, document report exporting, automatic escalation, satisfaction evaluation, external notifications or external-system integration. |
+
+Native mobile apps, payments, inventory/asset management, hardware procurement and external request import are "out of scope" items and have remained that way.  M4 adds category filtering rather than catalogue administration.
+
+### 1.17.5. Completion and engineering reflection
+Using the PED method (Met = 1, Partially met = 0.5, Not met = 0), 20 criteria are met, 1 partially met and 2 not met. Completion is 20.5 / 23 = 89.1%; functional requirements are 15 / 15 = 100% and MUST requirements are 18.5 / 19 = 97.4%. The denominator retains all 23 approved criteria, including SHOULD requirements that have not been met. FR-012 is the judgement-sensitive item: treating it as partial because it lacks richer analytics would yield 20 / 23 = 87.0%.
+
+The final delivery achieves the main M1 objective: a traceable request journey from submission through controlled Staff handling to requester-visible outcomes and Manager oversight. M3 highlighted the differences between the Core methods and delivering usable features: reassignment and comments needed HTTP/UI integration and dedicated verification, while search functionality was still missing. M4 spear-headed those gaps. The remaining weaknesses are chiefly measurable quality and operationality . Future baselines should set performance thresholds and usability tasks at M1, plan availability evidence early, and reserve verification time for browser workflows and realistic deployment conditions. The final system is suitable for demonstrations but is not yet production-ready.
+
+### 1.17.6. Final Release Decision
+
+At the M4 go-live point, the decision was taken to keep the project in the staging phase for demonstration purposes only. The justification for this is to ensure that security risks are appropriately mitigated and that risks associated with technical debts TD-06, TD-07, and TD-10 are not exposed upon project release. The risks and mitigating factors for the technical debts are listed in the Release evidence summary under `RISK-M4-01` and `RISK-M4-02`. TD-07 (development certificate only) will be resolved only once the other blockers are addressed, so the release stays in staging. Specific areas blocking release include NFR-002 and `RISK-M3-01`: passwords are hashed and HTTPS is exercised in staging, but there is no account lockout, password reset or MFA, and no certificate from a public authority. Should a release occur, accounts would be open to password guessing and takeover with no lockout, and the demo password file (TD-10) would expose every seeded account. For a full release, demo accounts and files must be removed, account lockout, reset and MFA added, a public certificate installed, and technical debts that endanger performance, security and reliability resolved.
+
+

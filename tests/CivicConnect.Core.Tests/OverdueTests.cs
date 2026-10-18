@@ -90,7 +90,7 @@ public class OverdueTests
         Assert.Single(await db.Requests.GetCommentsAsync(SqliteTestDatabase.Requester1, resolvedId));
 
         Assert.True((await db.Transitions.ApplyAsync(new TransitionRequest(resolvedId, RequestStatus.Resolved,
-            SqliteTestDatabase.RoadsStaff, ResolutionNote: "Fixed"))).Succeeded);
+            SqliteTestDatabase.RoadsStaff2, ResolutionNote: "Fixed"))).Succeeded);
         Assert.True((await db.Transitions.ApplyAsync(new TransitionRequest(rejectedId, RequestStatus.Rejected,
             SqliteTestDatabase.RoadsStaff, Reason: "Duplicate"))).Succeeded);
         Assert.Equal(new ActivityCounts(0, 1, 1, 0), await db.Requests.GetCountsAsync(SqliteTestDatabase.Manager));

@@ -59,7 +59,7 @@ Separating authorization from `Lifecycle` also preserves ADR-04's responsibility
 | Benefit | Complexity / trade-off |
 |---|---|
 | One authorization policy for role/group visibility | Introduces an additional policy abstraction |
-| Staff groups combine naturally through set union | Group/request-type configuration is not yet persisted in this Core-only slice |
+| Staff groups combine naturally through set union | Group/request-type configuration is not yet persisted in this Core-only slice (persisted in SQLite from M3, ADR-07) |
 | Visibility scope can support both list and detail checks | Query integration will be required when the data/API layer is implemented |
 | Lifecycle no longer owns role-specific authorization rules | Application services must use the authorization policy rather than bypassing it |
 | Policy is independently unit-testable | More types than a simple role switch |

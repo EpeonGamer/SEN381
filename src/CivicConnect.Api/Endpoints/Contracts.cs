@@ -14,6 +14,8 @@ public sealed record TransitionBody(RequestStatus? To, string? AssigneeId, strin
 
 public sealed record CommentBody(string? Content);
 
+public sealed record ReassignBody(string? AssigneeId, long? ExpectedVersion = null);
+
 // Response bodies.
 
 public sealed record UserView(string Id, string Role);
@@ -21,11 +23,11 @@ public sealed record UserView(string Id, string Role);
 public sealed record RequestSummary(
     Guid Id, string Category, string Title, RequestStatus Status, string RequesterId,
     string? AssigneeId, DateTimeOffset SubmittedAt, DateTimeOffset UpdatedAt,
-    DateTimeOffset? DueAt = null, bool IsOverdue = false)
+    DateTimeOffset? DueAt = null, bool IsOverdue = false, long Version = 0)
 {
     public static RequestSummary From(ServiceRequest r, DateTimeOffset? now = null) =>
         new(r.Id, r.Category, r.Title, r.Status, r.RequesterId, r.AssigneeId, r.SubmittedAt, r.UpdatedAt,
-            OverduePolicy.DueAt(r), OverduePolicy.IsOverdue(r, now ?? DateTimeOffset.UtcNow));
+            OverduePolicy.DueAt(r), OverduePolicy.IsOverdue(r, now ?? DateTimeOffset.UtcNow), r.Version);
 }
 
 /// <summary>Full request detail: current status plus its history, so requesters see reasons and notes (FR-007).</summary>

@@ -103,3 +103,71 @@
 * **Verification Applied:** Every change ran through `dotnet build -warnaserror` and the full test suite (now 88/88). Mutation checks confirmed that the DEF-01 and DEF-08 regression tests fail when the fix is removed. E2E tests ran against the deployed staging build, and staging `/health` was checked against `git rev-parse HEAD`. Kasper then verified it independently. He ran the test suite locally and walked through the UI as requester, staff and manager, including the denial checks. He re-ran the load test (submit p95 316 ms, against the AI's 311 ms) and confirmed CI passed on the push and the pull request. The overdue feature (Lethebe, CR-M3-02) was reviewed and tested with a 19-check exploratory run. All three team members must still be able to explain the code (RISK-M3-03).
 * **Decision:** Accepted with modifications (Kasper). Final team sign-off is the two approvals on the M3 pull request.
 * **Issues Found & Corrected:** The CI analyzer gate rejected the AI's own load-test code (CA1305 locale-dependent parsing), which was then fixed. Exploratory testing found that the AI's API error handler returned 500 instead of 400 for malformed input in Development (DEF-10). A regression test was written first and failed, then the handler was fixed (`d57997b`). The AI's first presentation PDF was silently shrunk to about half size by a CSS multi-column print bug; this was found by rendering the pages and corrected. A failed shell edit briefly produced a misleading "build succeeded", and miscounted test and request numbers in drafts were corrected. Changes to the existing Core/Data code were limited to two lines (CA2208 parameter name in Core; WAL pragma in Data). DEF-08, DEF-09 and DEF-10 were found through testing rather than assumed.
+
+### AI-M4-01: Per-account seed passwords, new seed accounts and optional HTTPS staging
+
+* **Date:** 2026-10-18
+* **Student:** Kasper (chose the scope, reviewed every diff, ran the manual checks)
+* **Tool Used:** Claude Opus 5.5 (Claude Code)
+* **Engineering Task:** Repay TD-06 (shared demo password), add the General and Waste staff accounts for Member Three, and exercise HTTPS (NFR-002, TD-07), without adding product features.
+* **AI Contribution:** Drafted per-account password seeding (`Seed:PasswordsFile`), `API11`/`API12`, the test-harness, load-test and staging-script changes, the two new accounts, the `start.ps1 -Https` switch and the README/STAGING.md updates. Proposed making HTTPS opt-in after Kasper asked how a default would affect teammates and the demo.
+* **Verification Applied:** Strict build and full suite after every change (90/90, then 109/109 after merging Member One's work). Mutation check: removing the shared-password guard makes `API12` fail. Staging E2E and a short load test passed; the merge was dry-run first. HTTPS checked on staging (307 redirect, `Secure` cookie, E2E over HTTPS) and plain HTTP re-checked. Kasper tested the merged build by hand, checked sign-in, filtering and navigation in three browsers (B1), and trusted the development certificate personally.
+* **Decision:** Accepted (Kasper). Waste-Team grouping to be confirmed by Member Three.
+* **Issues Found & Corrected:** (1) A .NET 9-only API in a .NET 8 project, replaced before building. (2) Analyzer warning CA1869, fixed. (3) The AI's branch setup pushed the first commits to the shared `m4-refinement`; reverted there and re-created on `m4-passwords` with new hashes so the later merge would apply. (4) README wrongly said STAGING.md covered the load test. (5) A leftover HTTPS setting could break plain-HTTP logins; the default mode now resets it. (6) A manual login failure (staging password used on the dev server) led to documenting both password files.
+
+### AI-M4-02: Final RTM, scope completion, decision record and technical-debt closure
+
+* **Date:** 2026-10-18
+* **Student:** Kasper
+* **Tool Used:** Claude Opus 5.5 (Claude Code)
+* **Engineering Task:** Bring the RTM, decision log, test evidence and Technical Debt Register to final status and calculate the Scope Completion Percentage.
+* **AI Contribution:** Checked Member One's new tests against each open acceptance criterion and drafted the RTM final-status column, PED §1.6.7, DEC-M4-01 (inferred from Member One's commit and code), the M4 test-evidence entries and the debt register's final status with TD-10.
+* **Verification Applied:** Kasper reviewed each diff before committing and made the judgement calls stated in the documents: FR-012 Met against its written criterion (sensitivity shown), DEC-M4-01 accepted after checking the code, NFR-001 left Partially met instead of inventing a target, HTTPS opt-in, and a reworded TD-02 after Kasper challenged the AI's draft. Totals were recomputed and checked; the NFR-006 record claims only what Kasper reported.
+* **Decision:** Accepted (Kasper).
+* **Issues Found & Corrected:** An early scope estimate (85%) was an arithmetic slip, corrected before writing. DEC-M4-01 was first left "to be added", then written. The missing HSTS header was recorded as a localhost limitation, not claimed. Items outside the AI's remit were raised, not decided: Waste-Team grouping, unowned `Later Consequence: TBD` entries, and the Defect and AI registers still at M3 status.
+
+### AI-M4-03: Frontend structure refined into a bento grid layout
+
+* **Date:** 2026-10-17 
+* **Student:** Lethebe Kutloano Maine.
+* **Tool Used:** GPT-6.1 Sol Medium.
+* **Engineering Task:** Improve the frontend structure and presentation of the existing CivicConnect workflows.
+* **AI Contribution:** Assisted with reorganising the frontend into a bento-style grid of panels, reported by Lethebe. The resulting HTML/CSS separates submission, request history/detail and Manager counts, with responsive spacing and layout.
+* **Verification Applied:** Repository review of `src/CivicConnect.Api/wwwroot/index.html`, `styles.css` and `app.js`, committed in `2c82f1b`. Existing team evidence in `docs/quality/TEST_EVIDENCE.md` records Kasper's manual sign-in, filtering and navigation checks in three desktop browsers. 
+* **Decision:** AI-assisted layout is integrated in the final code. Retain the implemented changes; changes were accepted with minor modifications entailing to the container structuring.
+* **Issues Found & Corrected:** The repository contains responsive layout rules and horizontally scrollable tables. 
+
+### AI-M4-04: Tests for assigning a request to another Staff member
+
+* **Date:** 2026-10-17.
+* **Student:** Lethebe Kutloano Maine.
+* **Tool Used:** GPT-6.1 Sol Medium.
+* **Engineering Task:** Create tests for assignment to another authorised Staff member and subsequent reassignment (FR-009).
+* **AI Contribution:** Assisted with creating tests for the “assign to other staff member” feature.
+* **Verification Applied:** Reviewed `RefinementApiTests`, `ReassignmentTests` and `ResolutionOwnershipTests` from `2c82f1b`. Checks cover eligible colleagues, denial of unauthorised/ineligible callers, stale-version conflicts, preserved assignment history, rollback on failed audit, refusal of terminal/same-assignee reassignment, assignment directly to a colleague, and resolution by the current assignee. The recorded M4 run is 109/109 passing; the fresh review result is recorded separately in `docs/quality/TEST_EVIDENCE.md`.
+* **Decision:** Tests are integrated in the final suite. 
+* **Issues Found & Corrected:** The M3 coverage/integration gap was addressed by dedicated tests and exposed reassignment endpoints. Additional group membership used by tests is confined to disposable test data.
+
+### AI-M4-05: Tests for the category feature
+
+* **Date:** 2026-10-18
+* **Student:** Lethebe Kutloano Maine.
+* **Tool Used:** GPT-6.1 Sol Medium 
+* **Engineering Task:** Create tests associated with the category feature
+* **AI Contribution:** Assisted with creating category-feature tests. The identifiable M4 test is `RefinementApiTests.Combined_filters_scope_pagination_and_counts_match`; existing category submission/validation tests also remain in the suite. 
+* **Verification Applied:** Reviewed the combined-filter test: it creates seven matching Roads requests plus nonmatching Water/title records, applies category + status + search, checks 5/2 pagination and seven distinct results, verifies matching Manager counts, case-insensitive category sorting, and an empty result for a different requester. 
+`BlackBoxTests.EP1_Submission_input_partitions` and `ApiIntegrationTests.API3_Submitted_request_is_created_and_readable_back` provide separate baseline category validation/storage evidence. Fresh Release regression on 2026-10-18 passed 109/109 (68 Core, 41 API).
+* **Decision:** Tests are integrated in the final suite.
+* **Issues Found & Corrected:** The repository implements selection from an existing category catalogue and category filtering, but no endpoint or UI for creating catalogue categories. 
+
+### AI-M4-06: Git commit title and description creation
+
+* **Date:** 2026-10-18
+* **Student:** Lethebe Kutloano Maine.
+* **Tool Used:** GPT-6.1 Sol Medium 
+* **Engineering Task:** Writing commit messages to Github
+* **AI Contribution:** Assisted with creating said commit titles and descriptions pertaining to M4 refinement. 
+* **Verification Applied:** Wording was checked to ensure that it matches with the implementation being commited to Github. Each modifications or additions were ensure to be included and correctly described.  
+* **Decision:** AI output was accepted with minor changes in wording and reduction of sentence lengths.
+* **Issues Found & Corrected:** Some generated commit descriptions were too wordy and required minor wording changes. Sentences were shortened, and descriptions were checked against the committed changes to ensure accuracy. 
+

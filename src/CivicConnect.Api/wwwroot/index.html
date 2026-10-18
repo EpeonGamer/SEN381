@@ -7,87 +7,156 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>CivicConnect</h1>
-    <div id="session" hidden>
-      Signed in as <strong id="who"></strong> (<span id="role"></span>)
-      <button id="logout" type="button">Log out</button>
-    </div>
-  </header>
+    <header>
+        <h1>CivicConnect</h1>
+        <div id="session" hidden>
+            Signed in as <strong id="who"></strong> (<span id="role"></span>)
+            <button id="logout" type="button">Log out</button>
+        </div>
+    </header>
 
-  <main>
-    <p id="message" role="status" aria-live="polite"></p>
+    <main>
+        <p id="message" role="status" aria-live="polite"></p>
 
-    <!-- Login -->
-    <section id="login-view">
-      <h2>Log in</h2>
-      <form id="login-form">
-        <label>User id <input name="userId" required autocomplete="username"></label>
-        <label>Password <input name="password" type="password" required autocomplete="current-password"></label>
-        <button type="submit">Log in</button>
-      </form>
-      <p class="hint">Demo accounts: requester-1, requester-2, staff-roads, staff-roads-2, staff-utilities, manager-1.</p>
-    </section>
+        <!-- Login -->
+        <section id="login-view">
+            <h2>Log in</h2>
+            <form id="login-form">
+                <label>User id <input name="userId" required autocomplete="username"></label>
+                <label>Password <input name="password" type="password" required autocomplete="current-password"></label>
+                <button type="submit">Log in</button>
+            </form>
+            <p class="hint">Demo accounts: requester-1, requester-2, staff-roads, staff-roads-2, staff-utilities, staff-general, staff-waste, manager-1.</p>
+        </section>
 
-    <!-- Requester: submit a request (FR-002, FR-003) -->
-    <section id="submit-view" hidden>
-      <h2>Submit a service request</h2>
-      <form id="submit-form">
-        <label>Category <select name="category" id="category" required></select></label>
-        <label>Title <input name="title" required maxlength="120"></label>
-        <label>Description <textarea name="description" required maxlength="2000" rows="3"></textarea></label>
-        <button type="submit">Submit</button>
-      </form>
-    </section>
+        <!-- Requester: submit a request (FR-002, FR-003) -->
+        <section id="submit-view" hidden>
+            <h2>Submit a service request</h2>
+            <form id="submit-form">
+                <label>Category <select name="category" id="category" required></select></label>
+                <label>Title <input name="title" required maxlength="120"></label>
+                <label>Description <textarea name="description" required maxlength="2000" rows="3"></textarea></label>
+                <button type="submit">Submit</button>
+            </form>
+        </section>
 
-    <!-- Manager: activity counts (FR-012, FR-013) -->
-    <section id="counts-view" hidden>
-      <h2>Service activity</h2>
-      <p>Open: <strong id="count-open">0</strong> · Rejected: <strong id="count-rejected">0</strong> ·
-         Resolved: <strong id="count-resolved">0</strong> · Overdue (included in Open): <strong id="count-overdue">0</strong></p>
-      <p class="hint">Open requests become overdue after more than 3 days (72 hours) from submission.</p>
-    </section>
+        <!-- Manager: activity counts (FR-012, FR-013) -->
+        <section id="counts-view" hidden>
+            <h2>Service activity</h2>
+            <p>
+                Open: <strong id="count-open">0</strong> · Rejected: <strong id="count-rejected">0</strong> ·
+                Resolved: <strong id="count-resolved">0</strong> · Overdue (included in Open): <strong id="count-overdue">0</strong>
+            </p>
+            <p class="hint">Open requests become overdue after more than 3 days (72 hours) from submission.</p>
+        </section>
 
-    <!-- Everyone: the requests they are allowed to see (FR-004, FR-005, FR-006) -->
-    <section id="list-view" hidden>
-      <h2 id="list-title">Requests</h2>
-      <label>Status filter
-        <select id="status-filter">
-          <option value="">All</option>
-          <option>Unassigned</option><option>Assigned</option><option>Rejected</option><option>Resolved</option>
-        </select>
-      </label>
-      <label>Deadline filter
-        <select id="overdue-filter">
-          <option value="">All deadlines</option>
-          <option value="true">Overdue only</option>
-          <option value="false">Not overdue</option>
-        </select>
-      </label>
-      <table>
-        <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Assignee</th><th>Submitted</th><th>Due</th><th></th></tr></thead>
-        <tbody id="request-rows"></tbody>
-      </table>
-      <p id="empty-list" hidden>No requests to show.</p>
-    </section>
+        <!-- Everyone: the requests they are allowed to see (FR-004, FR-005, FR-006) -->
+        <section id="list-view" hidden>
+            <h2 id="list-title" tabindex="-1">Requests</h2>
+            <form id="search-form" class="search-bar">
+                <label>
+                    Search requests
+                    <input id="search-input" type="search" maxlength="120"
+                           placeholder="Title, description, request ID or assignee" />
+                </label>
+                <button type="submit">Search</button>
+            </form>
+            <div class="filter-bar">
+            <label>
+                Category filter
+                <select id="category-filter">
+                    <option value="">All categories</option>
+                </select>
+            </label>
+            <label>
+                Status filter
+                <select id="status-filter">
+                    <option value="">All</option>
+                    <option>Unassigned</option>
+                    <option>Assigned</option>
+                    <option>Rejected</option>
+                    <option>Resolved</option>
+                </select>
+            </label>
+            <label>
+                Deadline filter
+                <select id="overdue-filter">
+                    <option value="">All deadlines</option>
+                    <option value="true">Overdue only</option>
+                    <option value="false">Not overdue</option>
+                </select>
+            </label>
+            <label>
+                Sort by
+                <select id="sort-filter">
+                    <option value="">Newest first</option>
+                    <option value="true">Category, then newest</option>
+                </select>
+            </label>
+            <button type="button" id="clear-filters">Clear filters</button>
+            </div>
+            <p id="list-loading" role="status" hidden>Loading requests…</p>
+            <div class="table-scroll" role="region" aria-label="Requests" tabindex="0">
+            <table>
+                <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Assignee</th><th>Submitted</th><th>Due</th><th></th></tr></thead>
+                <tbody id="request-rows"></tbody>
+            </table>
+            </div>
+            <div class="pagination">
+                <button id="previous-page" type="button" disabled>Previous</button>
+                <span id="page-label" aria-live="polite">Page 1</span>
+                <button id="next-page" type="button" disabled>Next</button>
+            </div>
+            <p id="empty-list" hidden>No requests match these filters. Try clearing the filters.</p>
+        </section>
 
-    <!-- Request detail with status history (FR-007) and staff actions (FR-009, FR-011) -->
-    <section id="detail-view" hidden>
-      <h2 id="detail-title"></h2>
-      <p>Status: <strong id="detail-status"></strong> · Category: <span id="detail-category"></span></p>
-      <p id="detail-description"></p>
-      <p id="detail-deadline"></p>
-      <div id="staff-actions" hidden>
-        <button type="button" data-action="assign">Assign to me</button>
-        <button type="button" data-action="reject">Reject…</button>
-        <button type="button" data-action="resolve">Resolve…</button>
-      </div>
-      <h3>History</h3>
-      <ul id="detail-history"></ul>
-      <button type="button" id="close-detail">Back to list</button>
-    </section>
-  </main>
+        <!-- Request detail with status history (FR-007) and staff actions (FR-009, FR-011) -->
+        <section id="detail-view" hidden>
+            <h2 id="detail-title" tabindex="-1"></h2>
+            <p id="detail-loading" role="status" hidden>Loading request…</p>
+            <div id="detail-content" hidden>
+            <p>Status: <strong id="detail-status"></strong> · Category: <span id="detail-category"></span> · Assigned to: <span id="detail-assignee"></span></p>
+            <p id="detail-description"></p>
+            <p id="detail-deadline"></p>
+            <div id="staff-actions" hidden>
+                <button type="button" data-action="assign">Assign to me</button>
+                <button type="button" data-action="reject">Reject…</button>
+                <button type="button" data-action="resolve">Resolve…</button>
 
-  <script src="app.js"></script>
+                <form id="assign-other-form">
+                    <label>
+                        Assign responsibility to an eligible staff member
+                        <select id="other-assignee" required>
+                            <option value="">Choose staff member</option>
+                        </select>
+                    </label>
+                    <button id="assign-other-button" type="submit">Assign Request</button>
+                </form>
+                <p id="assignee-hint" class="hint"></p>
+                <form id="comment-form">
+                    <label>Staff comment (visible to the requester)
+                        <textarea id="comment-content" required rows="3"></textarea>
+                    </label>
+                    <button type="submit">Add comment</button>
+                </form>
+            </div>
+            <h3>History</h3>
+            <ul id="detail-history"></ul>
+            <h3>Staff comments</h3>
+            <ul id="detail-comments"></ul>
+            </div>
+            <button type="button" id="close-detail">Back to list</button>
+        </section>
+    </main>
+    <dialog id="error-dialog" aria-labelledby="error-title"
+            aria-describedby="error-text">
+        <h2 id="error-title">Unable to complete the action</h2>
+        <p id="error-text"></p>
+        <form method="dialog">
+            <button type="submit" autofocus>Close</button>
+        </form>
+    </dialog>
+
+    <script src="app.js"></script>
 </body>
 </html>

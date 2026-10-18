@@ -16,12 +16,16 @@ public static class ReportEndpoints
 
     // Open includes overdue requests; overdue is derived from submission time (CR-M3-02).
     private static async Task<IResult> GetCountsAsync(ClaimsPrincipal user, RequestService service, string? category, string? status,
-        bool? overdue)
+        bool? overdue, string? search)
     {
         if (!RequestEndpoints.TryParseStatus(status, out var parsedStatus))
             return ApiResults.Error(400, "InvalidInput", "Unknown status.");
 
-        var counts = await service.GetCountsAsync(user.ToActor(), new RequestQuery(Category: category, Status: parsedStatus, Overdue: overdue));
+        if (search?.Trim().Length > 120)
+            return ApiResults.Error(
+                400, "InvalidInput", "Search must be at most 120 characters.");
+
+        var counts = await service.GetCountsAsync(user.ToActor(), new RequestQuery(Category: category, Status: parsedStatus, Overdue: overdue, Search: search));
         return Results.Ok(new ActivityCountsView(counts.Open, counts.Rejected, counts.Resolved, counts.Overdue));
     }
 }

@@ -31,4 +31,5 @@ Option D:
 ## 4. Consequences
 - **Verified:** API1 (401 when unauthenticated), API2 (no user enumeration), API5 (role enforced over HTTP), E2E1/E2E2 (login works on staging).
 - **Not verified / debt:** HTTPS is not exercised in simulated staging (TD-07). One shared demo password, no lockout and no MFA (TD-06, RISK-001).
+- **M4 outcome (2026-10-18):** the shared demo password was replaced by one generated password per account (TD-06 partly repaid) and HTTPS was exercised on staging with `start.ps1 -Https` (TD-07 partly repaid). Account lockout, password reset, MFA and a production certificate remain. The bullet above records the M3 position.
 - **Reversal path:** replace the login endpoint and cookie handler with OpenID Connect against an identity provider. The endpoints and Core remain unchanged because they only read the authenticated user id.

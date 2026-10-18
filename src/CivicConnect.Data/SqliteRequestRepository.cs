@@ -353,6 +353,20 @@ public sealed class SqliteRequestRepository : IRequestRepository
             sql.Append(parts.Count == 0 ? " AND 1 = 0" : $" AND ({string.Join(" OR ", parts)})");
         }
 
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            sql.Append("""
+         AND (
+             instr(lower(id), lower($search)) > 0
+             OR instr(lower(title), lower($search)) > 0
+             OR instr(lower(description), lower($search)) > 0
+             OR instr(lower(coalesce(assignee_id, '')), lower($search)) > 0
+         )
+        """);
+
+            command.Parameters.AddWithValue("$search", query.Search.Trim());
+        }
+
         if (query.Id is { } id)
         {
             sql.Append(" AND id = $queryId");
