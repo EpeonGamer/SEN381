@@ -29,6 +29,7 @@
     - [1.6.4. Scope Acceptance Rules](#164-scope-acceptance-rules)
     - [1.6.5. Project Constraints](#165-project-constraints)
     - [1.6.6. System Constraints](#166-system-constraints)
+    - [1.6.7. Final Scope Completion (M4)](#167-final-scope-completion-m4)
   - [1.7. Stakeholder Identification \& Governance](#17-stakeholder-identification--governance)
   - [1.8. Team Working Agreement](#18-team-working-agreement)
   - [1.9. Forward Engineering Considerations (FEC)](#19-forward-engineering-considerations-fec)
@@ -319,6 +320,65 @@ Focus will be purely emphasized upon the service request lifecycle. Having impor
 **Quality:** The project needs to be functional, reliable, stable, usable by the majority of participants, and allow for potential improvements.
 
 **Security:** Data needs to be kept secure, backed up, relevant and reliable. Should there be any data risks, systems such as backups need to be kept up to date.
+
+### 1.6.7. Final Scope Completion (M4)
+
+**Method.** Scope Completion % = (sum of acceptance-criterion values ÷ number of applicable approved acceptance criteria) × 100,
+with **Met = 1, Partially met = 0.5, Not met = 0** (Final Project brief). The baseline is the 23 M1 requirements in §1.5.1–§1.5.2,
+each with one acceptance criterion. The approved changes CR-M2-01 and CR-M3-02 reworded the criteria of FR-002, FR-007,
+FR-011, FR-013 and FR-015 but removed nothing, so the denominator stays **23**. Out-of-scope and deferred items (§1.6.2,
+§1.6.3) are not in the baseline and are not counted as failures. Each status and its evidence is in the RTM (§1.5.4, final column).
+
+| Req | Priority | Final status | Value | Note |
+|---|---|---|---|---|
+| FR-001 | MUST | Met | 1 |  |
+| FR-002 | MUST | Met | 1 |  |
+| FR-003 | MUST | Met | 1 |  |
+| FR-004 | MUST | Met | 1 |  |
+| FR-005 | MUST | Met | 1 |  |
+| FR-006 | MUST | Met | 1 | Search added in M4 |
+| FR-007 | MUST | Met | 1 |  |
+| FR-008 | MUST | Met | 1 |  |
+| FR-009 | MUST | Met | 1 | Reassignment exposed in M4 |
+| FR-010 | MUST | Met | 1 | Comments tested in M4 |
+| FR-011 | MUST | Met | 1 | Assignee-only resolve (DEC-M4-01) |
+| FR-012 | MUST | Met | 1 | Judgement: scored against its criterion; no performance analytics |
+| FR-013 | MUST | Met | 1 | Changed by CR-M3-02 |
+| FR-014 | MUST | Met | 1 | Tested in M4 |
+| FR-015 | MUST | Met | 1 | Changed by CR-M2-01 |
+| NFR-001 | MUST | Partially met | 0.5 | Measured; no numeric target exists |
+| NFR-002 | MUST | Met | 1 | Hashing and HTTPS (H1); development certificate only |
+| NFR-003 | SHOULD | Not met | 0 | No availability measurement |
+| NFR-004 | SHOULD | Met | 1 | On SQLite only |
+| NFR-005 | MUST | Met | 1 |  |
+| NFR-006 | SHOULD | Met | 1 | Manual, 3 desktop browsers (B1) |
+| NFR-007 | MUST | Met | 1 |  |
+| NFR-008 | SHOULD | Not met | 0 | No usability study |
+
+| Result | Value | Percentage |
+|---|---|---|
+| **All approved criteria** | **20.5 / 23** | **89.1%** |
+| MUST only (FR-001–015, NFR-001/002/005/007) | 18.5 / 19 | 97.4% |
+| SHOULD only (NFR-003/004/006/008) | 2 / 4 | 50.0% |
+| Functional requirements | 15 / 15 | 100% |
+
+**Interpretation.** 89.1% is in the brief's 80–89% "expected substantial completion" range, every functional MUST is met and
+only one MUST (NFR-001) is not fully met. Sensitivity: FR-012 is the only judgement call; scored Partially met, the result
+would be 20 / 23 = 87.0%.
+
+**MUST criterion not fully met (justification).**
+- **NFR-001 (Partially met):** the M1 criterion "measured via load test" was satisfied (P1), but no numeric target was ever set,
+  so the result cannot be judged pass or fail. This is a requirements gap from M1, carried as a limitation rather than hidden.
+
+NFR-002 was Partially met at M3 (HTTPS never exercised). M4 exercised it on staging (H1), so it is now Met; the remaining
+limit, a development rather than a public certificate, bears on the go-live decision, not on the criterion.
+
+**SHOULD criteria not met.** NFR-003 (99.9% availability) cannot be shown on a single SQLite node (ADR-07) and failure recovery is
+out of scope (§1.6.2). NFR-008 (usability study) was not run. Under §1.6.4, SHOULD requirements are not part of the committed MUST
+baseline; both are recorded as limitations.
+
+**Change control.** All criterion changes went through CR-M2-01 or CR-M3-02. DEC-M4-01 narrows who may resolve without changing
+any requirement. No scope was dropped without a change record.
 
 ---
 
