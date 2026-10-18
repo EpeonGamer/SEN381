@@ -126,7 +126,7 @@
 * **Decision:** Accepted (Kasper).
 * **Issues Found & Corrected:** An early scope estimate (85%) was an arithmetic slip, corrected before writing. DEC-M4-01 was first left "to be added", then written. The missing HSTS header was recorded as a localhost limitation, not claimed. Items outside the AI's remit were raised, not decided: Waste-Team grouping, unowned `Later Consequence: TBD` entries, and the Defect and AI registers still at M3 status.
 
-* ### AI-M4-03: Frontend structure refined into a bento grid layout
+### AI-M4-03: Frontend structure refined into a bento grid layout
 
 * **Date:** 2026-10-17 
 * **Student:** Lethebe Kutloano Maine.

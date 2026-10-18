@@ -51,6 +51,12 @@
   - [1.14. Deployment, Operations \& SRE](#114-deployment-operations--sre)
   - [1.15. References \& Evidence Traceability](#115-references--evidence-traceability)
   - [1.16. Milestone 3 — Construction, Quality \& Release Readiness (Evidence Index)](#116-milestone-3--construction-quality--release-readiness-evidence-index)
+  - [1.17. Milestone 4](#117-milestone-4)
+    - [1.17.1. Milestone One scope to Milestone Four final delivery reflection](#1171-milestone-one-scope-to-milestone-four-final-delivery-reflection)
+    - [1.17.2. Scope comparisons with final delivery](#1172-scope-comparisons-with-final-delivery)
+    - [1.17.3. What changed and why](#1173-what-changed-and-why)
+    - [1.17.4. What remains incomplete](#1174-what-remains-incomplete)
+    - [1.17.5. Completion and engineering reflection](#1175-completion-and-engineering-reflection)
 
 ---
 
@@ -1245,12 +1251,14 @@ Source: `tests/CivicConnect.Api.Tests/OverdueApiTests.cs`.
 
 **Documentation boundary:** `RELEASE_EVIDENCE_SUMMARY.md` supplies the current conditional decision and 88-case result. Older PED/CR-M3-02/DEF-07 passages still cite 72 or 85 cases; these are historical stages. Statements that comments/reassignment are wholly untested are also stale: the overdue SQLite journey checks their successful path, while dedicated negative/UI coverage remains incomplete.
 
-### 1.17 Milestone 4
+---
+
+## 1.17. Milestone 4
 
 ### 1.17.1. Milestone One scope to Milestone Four final delivery reflection
 M1 described that CivicConnect would contain the following functionality: service-request lifecycle: authenticated request submission, categorisation, status and history visibility, controlled Staff responsibility and updates, and Manager oversight. Access control, input validation, stored ownership/history and privacy were cross-cutting requirements. The baseline contains 15 functional requirements and 8 non-functional requirements. Milestone1 deliberately deferred the technology choice to M2.
 
-## 1.17.2 Scope comparisons with final delivery
+### 1.17.2. Scope comparisons with final delivery
 
 
 | M1 scope item / requirement | M1 priority/status | Final status | Acceptance criteria status | Evidence | Conclusion / reason for variance |
@@ -1290,7 +1298,7 @@ M1 described that CivicConnect would contain the following functionality: servic
 | **Operational failure recovery/maintenance** | Out of scope | Remained excluded | Not applicable to this excluded scope item | PED §1.6.2; ADR-07; technical debt register | Operational recovery was excluded, while transaction rollback remains implemented under NFR-004.  |
 
 
-## 1.17.3 What changed and why
+### 1.17.3. What changed and why
 
 1. **The lifecycle changes (CR-M2-01).** M1 wording mixed Assigned, In Progress, Resolved and Closed. The current implementation uses the following lifecycle phases: Unassigned → Assigned, Unassigned → Rejected, and Assigned → Resolved. Rejected and Resolved are terminal; “closed” means Resolved rather than an additional status. This removed conflicting rules while retaining feedback and controlled closure.
 2. **Persistence changed from the M2 PostgreSQL target to SQLite (ADR-07).** SQLite made an integrated, reproducible release possible without a database server. The Core/Data/API separation and repository interface remain. The cost is serialised writes, no server availability features, and PostgreSQL verification still outstanding. WAL reduced the recorded 10-user submission p95 from 818 ms to 311 ms. 
@@ -1299,7 +1307,7 @@ M1 described that CivicConnect would contain the following functionality: servic
 5. **Resolution ownership was tightened (DEC-M4-01).** Only the current assignee may resolve a request. Current assignee may transfer assignment of request to other authorised staff. Should an unauthorised staff attempt to resolve an assigned request, an error message dialog pops up to notify them that the request is assigned. 
 6. **Security demonstration improved in M4.** Unique per-account seed credentials replace the shared demo password. Optional HTTPS staging exercises redirects and Secure cookies with a development certificate. Unique passwords removed the security threat of seeded accounts containing the same password.
 
-## 1.17.4 What remains incomplete
+### 1.17.4. What remains incomplete
 
 | Item | Final assessment | Remaining work |
 |---|---|---|
@@ -1312,7 +1320,7 @@ M1 described that CivicConnect would contain the following functionality: servic
 
 Native mobile apps, payments, inventory/asset management, hardware procurement and external request import are "out of scope" items and have remained that way.  M4 adds category filtering rather than catalogue administration.
 
-### 1.17.5 Completion and engineering reflection
+### 1.17.5. Completion and engineering reflection
 Using the PED method (Met = 1, Partially met = 0.5, Not met = 0), 20 criteria are met, 1 partially met and 2 not met. Completion is 20.5 / 23 = 89.1%; functional requirements are 15 / 15 = 100% and MUST requirements are 18.5 / 19 = 97.4%. The denominator retains all 23 approved criteria, including SHOULD requirements that have not been met. FR-012 is the judgement-sensitive item: treating it as partial because it lacks richer analytics would yield 20 / 23 = 87.0%.
 
 The final delivery achieves the main M1 objective: a traceable request journey from submission through controlled Staff handling to requester-visible outcomes and Manager oversight. M3 highlighted the differences between the Core methods and delivering usable features: reassignment and comments needed HTTP/UI integration and dedicated verification, while search functionality was still missing. M4 spear-headed those gaps. The remaining weaknesses are chiefly measurable quality and operationality . Future baselines should set performance thresholds and usability tasks at M1, plan availability evidence early, and reserve verification time for browser workflows and realistic deployment conditions. The final system is suitable for demonstrations but is not yet production-ready.
