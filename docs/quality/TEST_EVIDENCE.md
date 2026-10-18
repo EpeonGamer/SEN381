@@ -1,5 +1,25 @@
 # Test Evidence (M3)
 
+> M4 entries are added at the top; the M3 records below are unchanged.
+
+## M4 final build: automated run and cross-browser check (2026-10-18)
+
+- **Full automated run: 109/109 passed** (Core 68, API 41), strict build with `-warnaserror`, commit `bdb89db` on
+  `m4-refinement` (RTM evidence key **R2**). New since M3: Lethebe's `RefinementApiTests`, `ResolutionOwnershipTests` and
+  `ReassignmentTests` (search, filters, sorting, comments, reassignment, assignee-only resolution) and `API11`/`API12`
+  (one password per seeded account).
+- **Cross-browser check (NFR-006):** manual check by Kasper of the Development build at `http://localhost:5080`.
+
+  | Browser | Version | Sign in | Filtering | Navigation |
+  |---|---|---|---|---|
+  | Mozilla Firefox | 158.0 | Pass | Pass | Pass |
+  | Microsoft Edge | 155.0.4283.62 | Pass | Pass | Pass |
+  | Google Chrome | 154.0.8037.100 | Pass | Pass | Pass |
+
+  Interpretation: the UI works on the current stable versions of the three main desktop browsers. Limits: manual, one
+  run, desktop only (no mobile or Safari), and only the journeys listed were checked; the browser UI has no automated
+  tests (TD-09).
+
 ## DEF-10 fix and overdue exploratory test (2026-10-16)
 
 - **Full run after the DEF-10 fix: 88/88 passed** (Core 65, API 23). New: `API10_Malformed_query_values_get_400_not_500`
