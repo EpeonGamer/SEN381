@@ -1267,6 +1267,19 @@ M1 described that CivicConnect would contain the following functionality: servic
 3. **Overdue became an explicit rule (CR-M3-02).** An open request is overdue when it goes over 72 hours after submission; assignment does not reset the deadline and terminal requests are excluded. Counts, filters and UI indicators implement that rule. The duration is a documented team assumption, not a stakeholder-validated service-level agreement.
 4. **M4 completed functional gaps visible at M3.** Search, category filtering, other-Staff assignment/reassignment, comments verification and Manager filter tests were completed in `2c82f1b`. The frontend was reorganised into responsive grid panels with error dialogs and clearer operational controls. These refinements support existing scope rather than introduce new functionality.
 5. **Resolution ownership was tightened (DEC-M4-01).** Only the current assignee may resolve a request. Current assignee may transfer assignment of request to other authorised staff. Should an unauthorised staff attempt to resolve an assigned request, an error message dialog pops up to notify them that the request is assigned. 
-6. **Security demonstration improved in M4.** Unique per-account seed credentials replace the shared demo password. Optional HTTPS staging exercises redirects and Secure cookies with a development certificate. Unique passwords removed the security threat of seeded accounts containing the same password. 
+6. **Security demonstration improved in M4.** Unique per-account seed credentials replace the shared demo password. Optional HTTPS staging exercises redirects and Secure cookies with a development certificate. Unique passwords removed the security threat of seeded accounts containing the same password.
+
+## 1.17.4 What remains incomplete
+
+| Item | Final assessment | Remaining work |
+|---|---|---|
+| NFR-001 performance | Partially met | Load measurements exist, but M1 supplied no numeric acceptance target. The final search workload has no recorded full load benchmark. |
+| NFR-003 99.9% availability | Not met | No availability measurement or sustained monitoring evidence. A short successful test run cannot establish this target.  |
+| NFR-008 unaided usability | Not met | No study of independent task completion rate or time.  |
+| Account and group administration | Deferred technical debt (TD-01/TD-06) | Seeded accounts/groups still replace administrative workflows; Generated demo passwords exist in a local git-ignored file, although database credentials are hashed. |
+| Production operation and maintenance | Limited demonstration | TLS uses a development certificate; public-certificate deployment and observable HSTS remain unverified. SQLite write limits (TD-05), migrations (TD-08), and automated browser tests (TD-09) remain open. |
+| Richer reporting and integrations | Deliberately deferred | No implemented dashboards, document report exporting, automatic escalation, satisfaction evaluation, external notifications or external-system integration. |
+
+Native mobile apps, payments, inventory/asset management, hardware procurement and external request import are "out of scope" items and have remained that way.  M4 adds category filtering rather than catalogue administration.
 
 
