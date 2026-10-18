@@ -32,6 +32,7 @@ public sealed class ApiTarget : IDisposable
     private readonly string _password;
 
     public bool IsDeployed => _deployedBaseUrl is not null;
+    internal string ConnectionString => $"Data Source={_databasePath}";
 
     private ApiTarget(Uri? deployedBaseUrl, string? deployedPassword, TimeProvider? clock = null, string environment = "Testing")
     {

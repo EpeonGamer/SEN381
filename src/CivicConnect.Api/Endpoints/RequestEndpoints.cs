@@ -22,12 +22,20 @@ public static class RequestEndpoints
         app.MapGet("/api/categories", async (CivicConnectDatabase db) =>
             Results.Ok(await SqliteReferenceData.ListCategoriesAsync(db.ConnectionString)));
 
+
         var requests = app.MapGroup("/api/requests");
         requests.MapPost("/", SubmitAsync);
         requests.MapGet("/", ListAsync);
         requests.MapGet("/{id:guid}", GetDetailAsync);
         requests.MapPost("/{id:guid}/transitions", ChangeStatusAsync);
         requests.MapPost("/{id:guid}/comments", AddCommentAsync);
+
+        requests.MapGet("/{id:guid}/eligible-assignees", GetEligibleAssigneesAsync)
+            .RequireAuthorization(policy => policy.RequireRole("Staff"));
+
+        requests.MapPost("/{id:guid}/reassign", ReassignAsync)
+            .RequireAuthorization(policy => policy.RequireRole("Staff"));
+
     }
 
     // FR-002, FR-003: a requester submits a categorised request; it starts as Unassigned.
@@ -54,12 +62,18 @@ public static class RequestEndpoints
 
     // FR-005, FR-006, FR-014: list only what the caller may see (filtering happens in SQL).
     private static async Task<IResult> ListAsync(ClaimsPrincipal user, RequestService service,
-        string? category, string? status, bool? sortByCategory, int? limit, int? offset, bool? overdue, TimeProvider clock)
+        string? category, string? status, bool? sortByCategory, int? limit, int? offset, bool? overdue, string? search, TimeProvider clock)
     {
         if (!TryParseStatus(status, out var parsedStatus))
             return ApiResults.Error(400, "InvalidInput", "Unknown status.");
+
+        if (search?.Trim().Length > 120)
+            return ApiResults.Error(
+                400, "InvalidInput", "Search must be at most 120 characters.");
+
         var query = new RequestQuery(Category: category, Status: parsedStatus,
-            SortByCategory: sortByCategory ?? false, Limit: limit ?? 50, Offset: offset ?? 0, Overdue: overdue);
+            SortByCategory: sortByCategory ?? false, Limit: limit ?? 50, Offset: offset ?? 0, Overdue: overdue, Search: search);
+
         if (query.Limit is < 1 or > 100 || query.Offset < 0)
             return ApiResults.Error(400, "InvalidInput", "limit must be 1-100 and offset 0 or more.");
 
@@ -109,9 +123,48 @@ public static class RequestEndpoints
     {
         status = null;
         if (string.IsNullOrWhiteSpace(text)) return true;
-        if (int.TryParse(text, out _) || !Enum.TryParse<RequestStatus>(text, ignoreCase: true, out var parsed))
+        if (int.TryParse(text, out _) || !Enum.TryParse<RequestStatus>(text, ignoreCase: true, out var parsed) ||
+            !Enum.IsDefined(parsed) || !string.Equals(parsed.ToString(), text.Trim(), StringComparison.OrdinalIgnoreCase))
             return false;
         status = parsed;
         return true;
+    }
+
+    private static async Task<IResult> GetEligibleAssigneesAsync(
+        Guid id,
+        ClaimsPrincipal user,
+        RequestService service,
+        IRequestRepository repository,
+        CivicConnectDatabase db)
+    {
+        // Reload the role from trusted storage, matching the Core's approach.
+        var actor = await repository.GetActorAsync(user.ToActor().Id);
+
+        if (actor?.Role != CivicConnect.Core.Authorization.ActorRole.Staff)
+            return ApiResults.Error(403, "NotAuthorised");
+
+        var request = await service.GetAsync(actor, id);
+
+        if (request is null)
+            return ApiResults.Error(404, "RequestNotFound");
+
+        var staff = await SqliteReferenceData.ListStaffForCategoryAsync(
+            db.ConnectionString, request.Category);
+
+        return Results.Ok(staff.Where(staffId => staffId != request.AssigneeId));
+    }
+
+    private static async Task<IResult> ReassignAsync(
+        Guid id,
+        ReassignBody body,
+        ClaimsPrincipal user,
+        RequestService service)
+    {
+        var result = await service.ReassignAsync(
+            user.ToActor(), id, body.AssigneeId?.Trim() ?? "", expectedVersion: body.ExpectedVersion);
+
+        return result.Succeeded
+            ? Results.NoContent()
+            : ApiResults.From(result.Failure);
     }
 }

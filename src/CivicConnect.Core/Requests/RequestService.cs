@@ -73,13 +73,19 @@ public sealed class RequestService
         return RequestResult.Success(id);
     }
 
-    public async Task<RequestResult> ReassignAsync(ActorContext actor, Guid id, string assigneeId, CancellationToken cancellationToken = default)
+    public Task<RequestResult> ReassignAsync(ActorContext actor, Guid id, string assigneeId, CancellationToken cancellationToken = default) =>
+        ReassignAsync(actor, id, assigneeId, null, cancellationToken);
+
+    public async Task<RequestResult> ReassignAsync(ActorContext actor, Guid id, string assigneeId, long? expectedVersion,
+        CancellationToken cancellationToken = default)
     {
         var trusted = await GetActorAsync(actor, cancellationToken);
         if (trusted is null || !_policy.GetScope(trusted).Allows(AuthorizationAction.ChangeStatus))
             return RequestResult.Fail(RequestFailure.NotAuthorised);
         var request = await GetAsync(trusted, id, cancellationToken);
         if (request is null) return RequestResult.Fail(RequestFailure.NotAuthorised);
+        if (expectedVersion.HasValue && expectedVersion.Value != request.Version)
+            return RequestResult.Fail(RequestFailure.ConcurrencyConflict);
         if (request.Status != RequestStatus.Assigned) return RequestResult.Fail(RequestFailure.InvalidState);
         var assignee = string.IsNullOrWhiteSpace(assigneeId) ? null : await _repository.GetActorAsync(assigneeId, cancellationToken);
         if (assignee is null || !_policy.GetScope(assignee).Allows(AuthorizationAction.ChangeStatus) ||
@@ -114,7 +120,10 @@ public sealed class RequestService
 
     private static void ValidateQuery(RequestQuery query)
     {
-        if (query.Limit is < 1 or > 100 || query.Offset < 0 || (query.Status.HasValue && !Enum.IsDefined(query.Status.Value)))
+        if (query.Limit is < 1 or > 100 ||
+            query.Offset < 0 ||
+            query.Search?.Trim().Length > 120 ||
+            (query.Status.HasValue && !Enum.IsDefined(query.Status.Value)))
             throw new ArgumentOutOfRangeException(nameof(query));
     }
 }

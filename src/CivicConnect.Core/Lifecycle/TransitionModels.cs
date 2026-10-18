@@ -21,7 +21,8 @@ public enum TransitionFailure
     MissingReason,
     MissingResolutionNote,
     ConcurrencyConflict,
-    InvalidAssignee
+    InvalidAssignee,
+    NotAssigned
 }
 
 public sealed record TransitionResult(bool Succeeded, TransitionFailure Failure, RequestStatus? NewStatus = null)

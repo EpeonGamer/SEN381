@@ -49,6 +49,12 @@ public sealed class TransitionService
         if (!TransitionRules.TryGetRequirement(current.Status, request.To, out var required))
             return TransitionResult.Fail(TransitionFailure.InvalidTransition);
 
+        // Resolution belongs to the current assignee, regardless of who originally assigned it.
+        // The repository's version check also prevents a concurrent reassignment being overwritten.
+        if (request.To == RequestStatus.Resolved &&
+            !string.Equals(current.AssigneeId, actor.Id, StringComparison.Ordinal))
+            return TransitionResult.Fail(TransitionFailure.NotAssigned);
+
         if (required.HasFlag(TransitionRequirement.Assignee) && string.IsNullOrWhiteSpace(request.AssigneeId))
             return TransitionResult.Fail(TransitionFailure.MissingAssignee);
         if (required.HasFlag(TransitionRequirement.Reason) && string.IsNullOrWhiteSpace(request.Reason))

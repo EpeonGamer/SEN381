@@ -36,4 +36,33 @@ public static class SqliteReferenceData
             return false;
         }
     }
+
+    public static async Task<IReadOnlyList<string>> ListStaffForCategoryAsync(
+    string connectionString,
+    string category)
+    {
+        await using var connection = new SqliteConnection(connectionString);
+        await connection.OpenAsync();
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+        SELECT DISTINCT u.id
+        FROM users AS u
+        JOIN user_staff_groups AS ug ON ug.user_id = u.id
+        JOIN staff_group_categories AS gc ON gc.group_name = ug.group_name
+        WHERE u.role = 'Staff'
+          AND gc.category = $category COLLATE NOCASE
+        ORDER BY u.id
+        """;
+
+        command.Parameters.AddWithValue("$category", category);
+
+        var result = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+            result.Add(reader.GetString(0));
+
+        return result;
+    }
 }

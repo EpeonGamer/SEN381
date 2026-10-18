@@ -17,6 +17,8 @@ public static class ApiResults
     public static IResult From(TransitionFailure failure) => failure switch
     {
         TransitionFailure.NotAuthorised => Error(StatusCodes.Status403Forbidden, failure.ToString()),
+        TransitionFailure.NotAssigned => Error(StatusCodes.Status403Forbidden, failure.ToString(),
+            "You can only resolve a request when you are assigned to it. Reassign the request to yourself first."),
         TransitionFailure.RequestNotFound => Error(StatusCodes.Status404NotFound, failure.ToString()),
         TransitionFailure.InvalidTransition => Error(StatusCodes.Status409Conflict, failure.ToString(),
             "That status change is not allowed from the request's current status."),
