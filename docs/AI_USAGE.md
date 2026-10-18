@@ -125,3 +125,49 @@
 * **Verification Applied:** Kasper reviewed each diff before committing and made the judgement calls stated in the documents: FR-012 Met against its written criterion (sensitivity shown), DEC-M4-01 accepted after checking the code, NFR-001 left Partially met instead of inventing a target, HTTPS opt-in, and a reworded TD-02 after Kasper challenged the AI's draft. Totals were recomputed and checked; the NFR-006 record claims only what Kasper reported.
 * **Decision:** Accepted (Kasper).
 * **Issues Found & Corrected:** An early scope estimate (85%) was an arithmetic slip, corrected before writing. DEC-M4-01 was first left "to be added", then written. The missing HSTS header was recorded as a localhost limitation, not claimed. Items outside the AI's remit were raised, not decided: Waste-Team grouping, unowned `Later Consequence: TBD` entries, and the Defect and AI registers still at M3 status.
+
+* ### AI-M4-03: Frontend structure refined into a bento grid layout
+
+* **Date:** 2026-10-17 
+* **Student:** Lethebe Kutloano Maine.
+* **Tool Used:** GPT-6.1 Sol Medium.
+* **Engineering Task:** Improve the frontend structure and presentation of the existing CivicConnect workflows.
+* **AI Contribution:** Assisted with reorganising the frontend into a bento-style grid of panels, reported by Lethebe. The resulting HTML/CSS separates submission, request history/detail and Manager counts, with responsive spacing and layout.
+* **Verification Applied:** Repository review of `src/CivicConnect.Api/wwwroot/index.html`, `styles.css` and `app.js`, committed in `2c82f1b`. Existing team evidence in `docs/quality/TEST_EVIDENCE.md` records Kasper's manual sign-in, filtering and navigation checks in three desktop browsers. 
+* **Decision:** AI-assisted layout is integrated in the final code. Retain the implemented changes; changes were accepted with minor modifications entailing to the container structuring.
+* **Issues Found & Corrected:** The repository contains responsive layout rules and horizontally scrollable tables. 
+
+### AI-M4-04: Tests for assigning a request to another Staff member
+
+* **Date:** 2026-10-17.
+* **Student:** Lethebe Kutloano Maine.
+* **Tool Used:** GPT-6.1 Sol Medium.
+* **Engineering Task:** Create tests for assignment to another authorised Staff member and subsequent reassignment (FR-009).
+* **AI Contribution:** Assisted with creating tests for the “assign to other staff member” feature.
+* **Verification Applied:** Reviewed `RefinementApiTests`, `ReassignmentTests` and `ResolutionOwnershipTests` from `2c82f1b`. Checks cover eligible colleagues, denial of unauthorised/ineligible callers, stale-version conflicts, preserved assignment history, rollback on failed audit, refusal of terminal/same-assignee reassignment, assignment directly to a colleague, and resolution by the current assignee. The recorded M4 run is 109/109 passing; the fresh review result is recorded separately in `docs/quality/TEST_EVIDENCE.md`.
+* **Decision:** Tests are integrated in the final suite. 
+* **Issues Found & Corrected:** The M3 coverage/integration gap was addressed by dedicated tests and exposed reassignment endpoints. Additional group membership used by tests is confined to disposable test data.
+
+### AI-M4-05: Tests for the category feature
+
+* **Date:** 2026-10-18
+* **Student:** Lethebe Kutloano Maine.
+* **Tool Used:** GPT-6.1 Sol Medium 
+* **Engineering Task:** Create tests associated with the category feature
+* **AI Contribution:** Assisted with creating category-feature tests. The identifiable M4 test is `RefinementApiTests.Combined_filters_scope_pagination_and_counts_match`; existing category submission/validation tests also remain in the suite. 
+* **Verification Applied:** Reviewed the combined-filter test: it creates seven matching Roads requests plus nonmatching Water/title records, applies category + status + search, checks 5/2 pagination and seven distinct results, verifies matching Manager counts, case-insensitive category sorting, and an empty result for a different requester. 
+`BlackBoxTests.EP1_Submission_input_partitions` and `ApiIntegrationTests.API3_Submitted_request_is_created_and_readable_back` provide separate baseline category validation/storage evidence. Fresh Release regression on 2026-10-18 passed 109/109 (68 Core, 41 API).
+* **Decision:** Tests are integrated in the final suite.
+* **Issues Found & Corrected:** The repository implements selection from an existing category catalogue and category filtering, but no endpoint or UI for creating catalogue categories. 
+
+### AI-M4-06: Git commit title and description creation
+
+* **Date:** 2026-10-18
+* **Student:** Lethebe Kutloano Maine.
+* **Tool Used:** GPT-6.1 Sol Medium 
+* **Engineering Task:** Writing commit messages to Github
+* **AI Contribution:** Assisted with creating said commit titles and descriptions pertaining to M4 refinement. 
+* **Verification Applied:** Wording was checked to ensure that it matches with the implementation being commited to Github. Each modifications or additions were ensure to be included and correctly described.  
+* **Decision:** AI output was accepted with minor changes in wording and reduction of sentence lengths.
+* **Issues Found & Corrected:** Some generated commit descriptions were too wordy and required minor wording changes. Sentences were shortened, and descriptions were checked against the committed changes to ensure accuracy. 
+
