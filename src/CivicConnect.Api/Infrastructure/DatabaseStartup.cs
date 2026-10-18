@@ -25,6 +25,8 @@ public static class DatabaseStartup
         ("staff-roads", "Staff", "Roads-Team"),
         ("staff-roads-2", "Staff", "Roads-Team"),
         ("staff-utilities", "Staff", "Utilities-Team"),
+        ("staff-general", "Staff", "General-Team"),
+        ("staff-waste", "Staff", "Waste-Team"),
         ("manager-1", "Manager", null),
     };
 
@@ -105,6 +107,8 @@ public static class DatabaseStartup
 
         await SqliteSetup.AddStaffGroupAsync(connectionString, "Roads-Team", "Roads");
         await SqliteSetup.AddStaffGroupAsync(connectionString, "Utilities-Team", "Water", "Waste");
+        await SqliteSetup.AddStaffGroupAsync(connectionString, "General-Team", "General");
+        await SqliteSetup.AddStaffGroupAsync(connectionString, "Waste-Team", "Waste");
 
         foreach (var (id, role, group) in DemoUsers)
         {

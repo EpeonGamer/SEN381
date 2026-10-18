@@ -13,8 +13,18 @@ The CivicConnect project is developed in order to assist civilians and streamlin
 dotnet run --project src/CivicConnect.Api --launch-profile CivicConnect.Api
 ```
 
-Open http://localhost:5080 and log in as `requester-1`, `requester-2`, `staff-roads`, `staff-roads-2`,
-`staff-utilities` or `manager-1`. Each account has its own password, generated on first run into
+Open http://localhost:5080 and log in with one of the seeded accounts:
+
+| Account | Role | Staff group (categories) |
+|---|---|---|
+| `requester-1`, `requester-2` | Requester | |
+| `staff-roads`, `staff-roads-2` | Staff | Roads-Team (Roads) |
+| `staff-utilities` | Staff | Utilities-Team (Water, Waste) |
+| `staff-general` | Staff | General-Team (General) |
+| `staff-waste` | Staff | Waste-Team (Waste) |
+| `manager-1` | Manager | |
+
+Each account has its own password, generated on first run into
 `src/CivicConnect.Api/data/seed-passwords.json` (git-ignored; only hashes are stored in the database).
 
 ## Test
