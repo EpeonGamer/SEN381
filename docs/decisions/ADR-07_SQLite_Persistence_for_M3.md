@@ -35,6 +35,8 @@ PostgreSQL remains the intended production target. Core code is unchanged and st
 
 **Reversal path:** write `PostgresRequestRepository` against the same interface and re-run the integration tests in `SqliteRepositoryIntegrationTests` against it.
 
+**M4 outcome (2026-10-18):** retained for the final release (TD-05). The single writer caused DEF-09 (mitigated with WAL), NFR-003 is not met and NFR-004 is verified on SQLite only. Password-hash storage was added in M3 (`SqliteCredentialStore`, ADR-08). The repository interface kept the reversal path to one new class.
+
 ## 5. Traceability
 
 FR-002, FR-005, FR-006, FR-008, NFR-004, NFR-007; ADR-04, ADR-05, ADR-06; DEC-M2-01..03; RISK-M2-02, RISK-M2-03.
