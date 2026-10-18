@@ -2,6 +2,18 @@
 
 > M4 entries are added at the top; the M3 records below are unchanged.
 
+## Final release `m4-rc1` on staging (2026-10-18)
+
+Release `m4-rc1` (commit `1f0c52175e8ec0f7ee5f05886dea1fb3be75309a`, PR #26) deployed with `deploy.ps1` (release gate
+109/109) and started with `start.ps1 -Https`:
+
+| Check | Result |
+|---|---|
+| `GET https://localhost:5091/health` | Healthy, `0.3.0+1f0c52175e8ec0f7ee5f05886dea1fb3be75309a`, Staging |
+| `GET http://localhost:5090/health` | 307 redirect to HTTPS |
+| Login as `staff-waste` (new M4 account) | 200; cookie `secure`, `httponly`, `samesite=strict` |
+| `EndToEndTests` against `https://localhost:5091` | 2/2 passed |
+
 ## M4 final build: automated run and cross-browser check (2026-10-18)
 
 - **Full automated run: 109/109 passed** (Core 68, API 41), strict build with `-warnaserror`, commit `bdb89db` on

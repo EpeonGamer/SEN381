@@ -58,6 +58,7 @@
     - [1.17.4. What remains incomplete](#1174-what-remains-incomplete)
     - [1.17.5. Completion and engineering reflection](#1175-completion-and-engineering-reflection)
     - [1.17.6. Final Release Decision](#1176-final-release-decision)
+    - [1.17.7. Final Submission Information](#1177-final-submission-information)
 
 ---
 
@@ -75,6 +76,7 @@
 | 2.0.0 | 2026/09/30 | M2 controlled update: ADR-04 lifecycle decision, ADR-05 authorization/visibility decision, ADR-06 technology-stack decision, data/persistence baseline, affected RTM evidence, initial Core implementation and 29 passing tests | Team | Aidan, Lethebe |
 | 3.0.0 | 2026/10/16 | M3 controlled update: CR-M2-01 wording applied to FR table (DEF-02); RTM M3 verification trace (§1.5.4, from Member One's M3 review); M3 risks; M3 gate (§1.11); M3 implementation evidence (§1.13); staging (§1.14); M3 evidence index (§1.16) incl. Member One's baseline-conformance, defect, metric and debt analysis | Team (AI-assisted, AI-M3-02) | Aidan, Lethebe |
 | 3.1.0 | 2026/10/16 | M3 rc2: release conditions closed (CI required and green; PR #14 approved by two reviewers; ADR-07, ADR-08 and CR-M3-02 accepted); DEF-10 fix; AI-M3-01/02 completed; 72-hour rationale (CR-M3-02); ADR-06 and §1.12 keep the M2 PostgreSQL baseline with an M3 note per ADR-07; stack diagram updated (Aidan); release identifier `m3-rc2` | Team | Documentation-only update merged by repository admin bypass before the deadline (reason recorded in the PR) |
+| 4.0.0 | 2026/10/18 | Final Project (M4): final RTM status (§1.5.4), scope completion 89.1% (§1.6.7), final risk statuses (§1.10, §1.12), §1.17 M1 → final delivery reflection, release decision (staging no-go) and final submission information; registers concluded; release `m4-rc1` | Team | Kasper, Aidan, Lethebe |
 
 ---
 
@@ -1334,4 +1336,19 @@ The final delivery achieves the main M1 objective: a traceable request journey f
 
 At the M4 go-live point, the decision was taken to keep the project in the staging phase for demonstration purposes only. The justification for this is to ensure that security risks are appropriately mitigated and that risks associated with technical debts TD-06, TD-07, and TD-10 are not exposed upon project release. The risks and mitigating factors for the technical debts are listed in the Release evidence summary under `RISK-M4-01` and `RISK-M4-02`. TD-07 (development certificate only) will be resolved only once the other blockers are addressed, so the release stays in staging. Specific areas blocking release include NFR-002 and `RISK-M3-01`: passwords are hashed and HTTPS is exercised in staging, but there is no account lockout, password reset or MFA, and no certificate from a public authority. Should a release occur, accounts would be open to password guessing and takeover with no lockout, and the demo password file (TD-10) would expose every seeded account. For a full release, demo accounts and files must be removed, account lockout, reset and MFA added, a public certificate installed, and technical debts that endanger performance, security and reliability resolved.
 
+**Deployment evidence (final state).** Release `m4-rc1` (commit `1f0c521`) was deployed to simulated staging with the release
+gate passing 109/109 and run over HTTPS: `/health` reports `0.3.0+1f0c52175e8ec0f7ee5f05886dea1fb3be75309a`, HTTP redirects to
+HTTPS, the login cookie is `Secure`, and both E2E journeys pass ([test evidence](../quality/TEST_EVIDENCE.md)).
 
+### 1.17.7. Final Submission Information
+
+| Item | Value |
+|---|---|
+| Team members | Kasper van Niekerk (602622), Aidan Lakmeeharan (602899), Lethebe Kutloano (601712) |
+| GitHub repository | https://github.com/EpeonGamer/SEN381 |
+| Final release | Git tag **`m4-rc1`** on `main`, commit `1f0c52175e8ec0f7ee5f05886dea1fb3be75309a` (PR #26); reported by `/health` on the deployed build |
+| PED version | v4.0 Final |
+| Final RTM | §1.5.4 (final-status column), continuing §1.5.3; scope completion in §1.6.7 |
+| Final deployment state | Simulated staging, by an evidence-based no-go decision (§1.17.6) |
+| Product access / demonstration | Run locally per the [README](../../README.md) or deploy to staging per [STAGING.md](../deployment/STAGING.md). Demo accounts are listed in the README; each account's password is generated on first run into a git-ignored `seed-passwords.json` |
+| Date submitted | 2026-10-18 |
