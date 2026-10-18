@@ -19,6 +19,21 @@
   Interpretation: the UI works on the current stable versions of the three main desktop browsers. Limits: manual, one
   run, desktop only (no mobile or Safari), and only the journeys listed were checked; the browser UI has no automated
   tests (TD-09).
+- **HTTPS check (NFR-002, TD-07):** staging build `5fce62d` run with `Security:RequireHttps=true` on
+  https://localhost:5091 using the trusted .NET development certificate (later repeatable with `start.ps1 -Https`,
+  checked again on release `ec453b5`).
+
+  | Check | Expected | Result |
+  |---|---|---|
+  | `GET https://localhost:5091/health` | 200, version and Staging | Pass: `0.3.0+5fce62d…`, Staging |
+  | `GET http://localhost:5090/health` and `/api/requests` | 307 redirect to the HTTPS address | Pass |
+  | Login over HTTPS: `Set-Cookie` flags | `secure`, `httponly`, `samesite=strict` | Pass: all three present |
+  | `EndToEndTests` (E2E1, E2E2) against `https://localhost:5091` | Pass | Pass: 2/2 |
+  | `Strict-Transport-Security` header | Present outside localhost | Absent: ASP.NET Core excludes `localhost` from HSTS by design |
+  | Default `start.ps1` (no `-Https`) with a leftover `Security__RequireHttps=true` | Plain HTTP, login works | Pass: no redirect, cookie without `secure`, authenticated call 200 |
+
+  Interpretation: HTTPS enforcement, the redirect and the Secure cookie work as configured for Production. Limits: a
+  development certificate trusted on one machine, not a public CA certificate; HSTS cannot be observed on localhost.
 
 ## DEF-10 fix and overdue exploratory test (2026-10-16)
 
