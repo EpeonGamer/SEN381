@@ -43,9 +43,6 @@ public sealed class TransitionService
         if (current is null)
             return TransitionResult.Fail(TransitionFailure.RequestNotFound);
 
-        if (!scope.CanView(new RequestAccess(current.Id, current.RequesterId, current.Category)))
-            return TransitionResult.Fail(TransitionFailure.NotAuthorised);
-
         if (!TransitionRules.TryGetRequirement(current.Status, request.To, out var required))
             return TransitionResult.Fail(TransitionFailure.InvalidTransition);
 
